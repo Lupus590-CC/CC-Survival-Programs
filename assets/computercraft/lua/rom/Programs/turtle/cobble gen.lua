@@ -8,10 +8,10 @@ local function allFull()
 end
 
 while true do
-  if allFull() then
-    print("paused due to full inventory, press any key to resume")
-    os.pullEvent("key")
-    print("attemting to resume")
+  while allFull() do
+    print("paused due to full inventory, remove blocks to resume")
+    os.pullEvent("turtle_inventory")
+    print("detecked inventory change, attemting to resume")
   end
   turtle.dig()
 end
