@@ -9,9 +9,9 @@ end
 
 while true do
   while allFull() do
-    print("paused due to full inventory, remove blocks to resume")
+    print("Paused due to full inventory, remove blocks to resume.")
     os.pullEvent("turtle_inventory")
-    print("detecked inventory change, attemting to resume")
+    print("Detected inventory change, attemting to resume.")
   end
   turtle.dig()
 end
