@@ -35,7 +35,7 @@ while true do
   end
 
   local amountToPull = 1
-  if inputChest then
+  if inputChest and inputChest.list then
     repeat
       local total = 0
       for _, item in pairs(inputChest.list()) do
