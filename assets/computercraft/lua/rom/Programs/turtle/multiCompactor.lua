@@ -1,14 +1,6 @@
 -- complex mode, requires plethora
 local configFileName = shell.getRunningProgram()..".config"
-local config = {
-  input = "peripheralAddressHere, eg minecraft:chest_1",
-  output = "peripheralAddressHere, eg minecraft:chest_2",
-  turtleNeighbour = {
-    address = "peripheralAddressHere, eg minecraft:chest_3"
-    .." the turtle needs to be able to access this directly",
-    pos = "top/bottom/front",
-  }
-}
+local config
 local inputChest
 local outputChest
 local turtleChest
@@ -27,10 +19,18 @@ local function loadConfig()
   return pcall(unsafeload)
 end
 
-local function saveConfig()
+local function createConfig()
   local function unsafeSave()
     local file = fs.open(configFileName, "w")
-    file.write(textutils.serialize(config))
+    file.write([[{
+  input = "minecraft:chest_1",
+  output = "minecraft:chest_2",
+  turtleNeighbour = {
+    address = "minecraft:chest_3", -- the turtle needs to be able to access this directly
+    pos = "top", -- relative to the turtle, top/bottom/front
+  },
+  threeXThreeMode = true, -- false for 2x2 craft
+}]]) -- TODO: detect mode to use before pulling blocks
     file.close()
   end
 
@@ -39,7 +39,7 @@ end
 
 local ok, data = loadConfig()
 if (not ok) and data == "not a file" then
-  local ok, err = saveConfig()
+  local ok, err = createConfig()
   if not ok then
     error("Could not save config file.\n Got error: "..err,0)
   end
@@ -58,6 +58,7 @@ inputChest.PERIPHERAL_NAME = config.input
 outputChest.PERIPHERAL_NAME = config.output
 turtleChest.PERIPHERAL_NAME = config.turtleNeighbour.address
 turtleChest.POSITION = config.turtleNeighbour.pos:lower()
+threeXThreeMode = config.threeXThreeMode
 
 local _, block, suckFunc, dropFunc
 if turtleChest.POSITION == "up" or turtleChest.POSITION == "top" then
@@ -85,12 +86,61 @@ end
 local threeXThreeSlots = {1,2,3,5,6,7,9,10,11}
 local twoXTwoSlots = {1,2,5,6}
 
+local minToPull
+if threeXThreeMode then
+  slots = threeXThreeSlots
+  minToPull = 9
+else
+  slots = twoXTwoSlots
+  minToPull = 4
+end
+
+local function pullInput()
+  -- compact input chest
+  for slot in pairs(inputChest.list()) do
+    inputChest.pushItems(inputChest.PERIPHERAL_NAME, slot)
+  end
+
+  local pulled = false
+  repeat
+    for slot, item in pairs(inputChest.list()) do
+      if item.count > minToPull then
+        local limit = math.floor(item.count/minToPull)*minToPull
+        inputChest.pushItems(turtleChest.PERIPHERAL_NAME, slot, limit)
+        pulled = true
+        break
+      end
+    end
+  until pulled
+
+  local amountToPull = 1
+  repeat
+    local total = 0
+    for _, item in pairs(turtleChest.list()) do
+      total = total + item.count
+    end
+    if threeXThreeMode then
+      amountToPull = math.floor(total/9)
+    else
+      amountToPull = math.floor(total/4)
+    end
+    amountToPull = math.min(amountToPull, 64)
+  until amountToPull > 0
+
+  for _, slot in ipairs(slots) do
+    local currentCount = turtle.getItemCount(slot)
+    if currentCount < amountToPull then
+      turtle.select(slot)
+      while not suckFunc(amountToPull - currentCount) do end
+    end
+  end
+end
+
 local function pushOutput()
   turtle.select(16)
   dropFunc()
-  while pairs(turtleChest.list())(turtleChest.list()) do
-    -- bit of a hack for while items in inventory
-    turtleChest.pushItems(outputChest.PERIPHERAL_NAME, 1)
+  for slot in pairs(turtleChest.list()) do
+    turtleChest.pushItems(outputChest.PERIPHERAL_NAME, slot)
   end
 end
 
@@ -105,6 +155,16 @@ for _, slot in pairs(threeXThreeSlots) do
   end
 end
 
+while true do
+  pullInput()
 
--- TODO: actually do stuff
--- TODO: how to tell which mode to use?
+  turtle.select(16)
+  if not turtle.craft() then
+    printError("Bad inventory, please fix and press any key to resume")
+    os.pullEvent("key")
+    print("resuming")
+  end
+  if turtle.getItemCount(16) > 0 then
+    pushOutput()
+  end
+end
