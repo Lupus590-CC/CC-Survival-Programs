@@ -96,15 +96,14 @@ else
 end
 
 local function pullInput()
-  -- compact input chest
-  for slot in pairs(inputChest.list()) do
-    inputChest.pushItems(inputChest.PERIPHERAL_NAME, slot)
-  end
-
   local pulled = false
   repeat
+    -- compact input chest
+    for slot in pairs(inputChest.list()) do
+      inputChest.pushItems(inputChest.PERIPHERAL_NAME, slot)
+    end
     for slot, item in pairs(inputChest.list()) do
-      if item.count > minToPull then
+      if item.count >= minToPull then
         local limit = math.floor(item.count/minToPull)*minToPull
         inputChest.pushItems(turtleChest.PERIPHERAL_NAME, slot, limit)
         pulled = true
@@ -112,26 +111,26 @@ local function pullInput()
       end
     end
   until pulled
+end
 
+local function pullTurtle()
   local amountToPull = 1
-  repeat
-    local total = 0
-    for _, item in pairs(turtleChest.list()) do
-      total = total + item.count
-    end
-    if threeXThreeMode then
-      amountToPull = math.floor(total/9)
-    else
-      amountToPull = math.floor(total/4)
-    end
-    amountToPull = math.min(amountToPull, 64)
-  until amountToPull > 0
+  local total = 0
+  for _, item in pairs(turtleChest.list()) do
+    total = total + item.count
+  end
+  if threeXThreeMode then
+    amountToPull = math.floor(total/9)
+  else
+    amountToPull = math.floor(total/4)
+  end
+  amountToPull = math.min(amountToPull, 64)
 
   for _, slot in ipairs(slots) do
     local currentCount = turtle.getItemCount(slot)
     if currentCount < amountToPull then
       turtle.select(slot)
-      while not suckFunc(amountToPull - currentCount) do end
+      suckFunc(amountToPull - currentCount)
     end
   end
 end
@@ -145,26 +144,21 @@ local function pushOutput()
 end
 
 -- clean inventory
-if turtle.getItemCount(16) > 0 then
-  pushOutput()
-end
 for _, slot in pairs(threeXThreeSlots) do
-  if turtle.getItemCount(slot) > 0 then
-    turtle.select(slot)
-    dropFunc()
-  end
+  turtle.select(slot)
+  dropFunc()
 end
 
 while true do
-  pullInput()
-
+  pullTurtle()
   turtle.select(16)
-  if not turtle.craft() then
-    printError("Bad inventory, please fix and press any key to resume")
+  if turtle.getItemCount(1) > 0 and not turtle.craft() then
+    printError("Bad inventory, empty turtle chest and turtle then press any key to resume")
     os.pullEvent("key")
     print("resuming")
   end
   if turtle.getItemCount(16) > 0 then
     pushOutput()
   end
+  pullInput()
 end
