@@ -31,7 +31,7 @@ term.redirect(win) -- really we should capture the old term but everything seems
 local rowWin = window.create(win, 1,2, w, h-3)
 
 local configFileName = shell.getRunningProgram()..".config"
-local recipeFileName = shell.getRunningProgram()..".recipe"
+local recipeFileName = shell.getRunningProgram()..".recipes"
 
 local recipes
 local config
@@ -220,7 +220,7 @@ local function doUi()
       if event[2] == keys.up and not event[3] then
         selected = math.max(selected - 1, 1)
       elseif event[2] == keys.down and not event[3] then
-        selected = math.min(selected + 1, recipes.n)
+        selected = math.min(selected + 1, recipes.n or 1)
       elseif event[2] == keys.three and not event[3] then
         recipes[recipes[selected]] = 3
         saveRecipes()
@@ -245,12 +245,17 @@ local function pullInput()
     for slot, item in pairs(inputChest.list()) do
       local minToPull
       local hasRecipe = false
-      if recipes[item.name] == 3 then
+      if recipes[item.name..":"..item.damage] == 3 then
         minToPull = 9
         hasRecipe = true
-      elseif recipes[item.name] == 2 then
+      elseif recipes[item.name..":"..item.damage] == 2 then
         minToPull = 4
         hasRecipe = true
+      elseif recipes[item.name..":"..item.damage] == nil then
+        recipes[item.name..":"..item.damage] = 1
+        recipes.n = recipes.n + 1
+        recipes[recipes.n] = item.name..":"..item.damage
+        saveRecipes()
       end
       if hasRecipe and item.count >= minToPull then
         local limit = math.floor(item.count/minToPull)*minToPull
@@ -267,7 +272,7 @@ local function pullTurtle()
   local threeXThreeMode = false
   for _, item in pairs(turtleChest.list()) do
     total = total + item.count
-    threeXThreeMode = recipes[item.name] == 3
+    threeXThreeMode = recipes[item.name..":"..item.damage] == 3
   end
 
   local amountToPull = 1
@@ -348,14 +353,4 @@ if not ok then
   end
 end
 
-
-
-local function itemScanner()
-
-  while true do
-    -- TODO: actual item scan
-    sleep(10000)
-  end
-end
-
-parallel.waitForAll(doUi, itemScanner, compact)
+parallel.waitForAll(doUi, compact)
