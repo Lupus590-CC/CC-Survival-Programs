@@ -186,6 +186,20 @@ local function renderError(e)
   os.queueEvent("compact_resume")
 end
 
+local function saveRecipes()
+  local function unsafeSave()
+    local file = fs.open(recipeFileName, "w")
+    file.writeLine("{")
+    for _, v in ipairs(recipes) do
+      file.writeLine("[\""..v.."\"]="..recipes[v]..",")
+    end
+    file.writeLine("}")
+    file.close()
+  end
+
+  return pcall(unsafeSave)
+end
+
 local function doUi()
   local selected = 1
   while true do
@@ -209,10 +223,13 @@ local function doUi()
         selected = math.min(selected + 1, recipes.n)
       elseif event[2] == keys.three and not event[3] then
         recipes[recipes[selected]] = 3
+        saveRecipes()
       elseif event[2] == keys.two and not event[3] then
         recipes[recipes[selected]] = 2
+        saveRecipes()
       elseif event[2] == keys.one and not event[3] then
         recipes[recipes[selected]] = 1
+        saveRecipes()
       end
     end
   end
@@ -302,42 +319,39 @@ local function compact()
   end
 end
 
-local function loadRecipe()
+local function loadRecipes()
   local function unsafeload()
     local file = fs.open(recipeFileName, "r")
     recipes = textutils.unserialize(file.readAll())
-    -- TODO: rewrite load recipe
     file.close()
+    recipes.n = 0
+    for k in pairs(recipes) do
+      if type(k) == "string" and k ~= "n" then
+        recipes.n = recipes.n + 1
+        recipes[recipes.n] = k
+      end
+    end
   end
 
   if (not fs.exists(recipeFileName)) or fs.isDir(recipeFileName) then
+    recipes = {}
     return false, "not a file"
   end
 
   return pcall(unsafeload)
 end
 
-local function saveRecipe()
-  local function unsafeSave()
-    local file = fs.open(recipeFileName, "w")
-    -- TODO: rewrite save recipe
-    file.write(recipes)
-    file.close()
+local ok, err = loadRecipes()
+if not ok then
+  if err ~= "not a file" then
+    error("Error loading recipe file: "..err)
   end
-
-  return pcall(unsafeSave)
 end
 
+
+
 local function itemScanner()
-  recipes = {
-    "minecraft:cobblestone",
-    "minecraft:stone",
-    "minecraft:woodPlanks",
-    ["minecraft:cobblestone"] = 3,
-    ["minecraft:stone"] = 2,
-    ["minecraft:woodPlanks"] = 1,
-    ["n"] = 3,
-  }
+
   while true do
     -- TODO: actual item scan
     sleep(10000)
