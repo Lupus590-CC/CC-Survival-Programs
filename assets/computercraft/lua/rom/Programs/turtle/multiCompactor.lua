@@ -25,6 +25,8 @@ local theme = {
   },
 }
 
+-- TODO: debug recipe duplication
+
 local w,h = term.getSize()
 local win = window.create(term.current(), 1, 1, w, h)
 term.redirect(win) -- really we should capture the old term but everything seems fine when we don't restore it and we don't need it so we just let it disappear into the aether
