@@ -195,7 +195,7 @@ local function doUi()
     term.setTextColour(theme.main.fg)
     term.clear()
     renderHeader()
-    -- TODO: paging
+    -- TODO: paging/scrolling
     renderRows(selected)
     renderFooter()
     win.setVisible(true)
@@ -207,11 +207,11 @@ local function doUi()
         selected = math.max(selected - 1, 1)
       elseif event[2] == keys.down and not event[3] then
         selected = math.min(selected + 1, recipes.n)
-      elseif event[2] == keys[3] and not event[3] then
+      elseif event[2] == keys.three and not event[3] then
         recipes[recipes[selected]] = 3
-      elseif event[2] == keys[2] and not event[3] then
+      elseif event[2] == keys.two and not event[3] then
         recipes[recipes[selected]] = 2
-      elseif event[2] == keys[1] and not event[3] then
+      elseif event[2] == keys.one and not event[3] then
         recipes[recipes[selected]] = 1
       end
     end
@@ -306,6 +306,7 @@ local function loadRecipe()
   local function unsafeload()
     local file = fs.open(recipeFileName, "r")
     recipes = textutils.unserialize(file.readAll())
+    -- TODO: rewrite load recipe
     file.close()
   end
 
@@ -319,6 +320,7 @@ end
 local function saveRecipe()
   local function unsafeSave()
     local file = fs.open(recipeFileName, "w")
+    -- TODO: rewrite save recipe
     file.write(recipes)
     file.close()
   end
@@ -337,7 +339,7 @@ local function itemScanner()
     ["n"] = 3,
   }
   while true do
-
+    -- TODO: actual item scan
     sleep(10000)
   end
 end
