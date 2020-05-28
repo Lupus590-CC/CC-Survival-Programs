@@ -228,12 +228,20 @@ local function doUi()
       renderError(event[2])
     elseif event[1] == "key" then
       if event[2] == keys.up and not event[3] then
-        selected = math.max(selected - 1, 1)
-        -- TODO: switch page when going off screen
+        if selected == 1 and page > 1 then
+          selected = numberOnPage
+          page = page -1
+        else
+          selected = math.max(selected - 1, 1)
+        end
       elseif event[2] == keys.down and not event[3] then
         -- TODO: proper number on page calc
-        selected = math.min(selected + 1, numberOnPage)
-        -- TODO: switch page when going off screen
+        if selected == pageSize and page < pageCount then
+          selected = 1
+          page = page +1
+        else
+          selected = math.min(selected + 1, numberOnPage)
+        end
       elseif event[2] == keys.right and not event[3] then
         page = math.min(page + 1, pageCount or 1)
         -- TODO: proper number on page calc
