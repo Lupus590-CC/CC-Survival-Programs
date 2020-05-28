@@ -28,7 +28,8 @@ local theme = {
 local w,h = term.getSize()
 local win = window.create(term.current(), 1, 1, w, h)
 term.redirect(win) -- really we should capture the old term but everything seems fine when we don't restore it and we don't need it so we just let it disappear into the aether
-local rowWin = window.create(win, 1,2, w, h-3)
+local pageSize = h-3
+local rowWin = window.create(win, 1,2, w, pageSize)
 
 local configFileName = shell.getRunningProgram()..".config"
 local recipeFileName = shell.getRunningProgram()..".recipes"
@@ -116,14 +117,15 @@ end
 
 local threeXThreeSlots = {1,2,3,5,6,7,9,10,11}
 local twoXTwoSlots = {1,2,5,6}
+local pageCount = 1
 
-local function renderHeader()
+local function renderHeader(pageNumber)
   term.setCursorPos(1,1)
   term.setBackgroundColour(theme.header.bg)
   term.setTextColour(theme.header.fg)
   term.clearLine()
   term.setCursorPos(1,1)
-  write(" Mode | Internal Name")
+  write(" Mode | Internal Name | page "..pageNumber.." of "..pageCount)
 end
 
 local function renderFooter()
@@ -159,16 +161,23 @@ local function renderRow(row, isSelected)
   end
   write(" | "..row)
 end
-
-local function renderRows(selected)
+local numberOnPage = 0 -- TODO: proper number on page calc
+local function renderRows(selected, page)
   local oldTerm = term.redirect(rowWin)
   term.setBackgroundColour(theme.main.bg)
   term.setTextColour(theme.main.fg)
   term.setCursorPos(1,1)
   term.clear()
-  for rowNum, recipe in ipairs(recipes or {}) do
-    term.setCursorPos(1,rowNum)
-    renderRow(recipe, selected == rowNum)
+  numberOnPage = 0 -- TODO: proper number on page calc
+  if recipes.n and recipes.n > 0 then
+    for i = 1, pageSize do
+      local itemToDisplay = pageSize*(page-1)+i
+      if recipes[itemToDisplay] then
+        term.setCursorPos(1, i)
+        renderRow(recipes[itemToDisplay], selected == i)
+        numberOnPage = numberOnPage + 1 -- TODO: proper number on page calc
+      end
+    end
   end
   term.redirect(oldTerm)
 end
@@ -202,15 +211,16 @@ end
 
 local function doUi()
   local selected = 1
+  local page = 1
   while true do
     win.setVisible(false)
     term.setCursorPos(1,1)
     term.setBackgroundColour(theme.main.bg)
     term.setTextColour(theme.main.fg)
     term.clear()
-    renderHeader()
-    -- TODO: paging/scrolling
-    renderRows(selected)
+    pageCount = math.max(math.ceil((recipes.n or 1)/(pageSize or 1)),1)
+    renderHeader(page)
+    renderRows(selected, page)
     renderFooter()
     win.setVisible(true)
     local event = table.pack(os.pullEvent())
@@ -219,16 +229,25 @@ local function doUi()
     elseif event[1] == "key" then
       if event[2] == keys.up and not event[3] then
         selected = math.max(selected - 1, 1)
+        -- TODO: switch page when going off screen
       elseif event[2] == keys.down and not event[3] then
-        selected = math.min(selected + 1, recipes.n or 1)
+        -- TODO: proper number on page calc
+        selected = math.min(selected + 1, numberOnPage)
+        -- TODO: switch page when going off screen
+      elseif event[2] == keys.right and not event[3] then
+        page = math.min(page + 1, pageCount or 1)
+        -- TODO: proper number on page calc
+        selected = math.min(selected, numberOnPage)
+      elseif event[2] == keys.left and not event[3] then
+        page = math.max(page - 1, 1)
       elseif event[2] == keys.three and not event[3] then
-        recipes[recipes[selected]] = 3
+        recipes[recipes[pageSize*(page-1)+selected]] = 3
         saveRecipes()
       elseif event[2] == keys.two and not event[3] then
-        recipes[recipes[selected]] = 2
+        recipes[recipes[pageSize*(page-1)+selected]] = 2
         saveRecipes()
       elseif event[2] == keys.one and not event[3] then
-        recipes[recipes[selected]] = 1
+        recipes[recipes[pageSize*(page-1)+selected]] = 1
         saveRecipes()
       end
     end
@@ -253,7 +272,7 @@ local function pullInput()
         hasRecipe = true
       elseif recipes[item.name..":"..item.damage] == nil then
         recipes[item.name..":"..item.damage] = 1
-        recipes.n = recipes.n + 1
+        recipes.n = (recipes.n or 0) + 1
         recipes[recipes.n] = item.name..":"..item.damage
         saveRecipes()
       end
