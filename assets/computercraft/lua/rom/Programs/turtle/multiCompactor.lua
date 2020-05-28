@@ -19,6 +19,10 @@ local theme = {
     fg = colours.white,
     bg = colours.black,
   },
+  main =  {
+    fg = term.isColour() and colours.red or colours.black,
+    bg = colours.black,
+  },
 }
 
 local w,h = term.getSize()
@@ -86,7 +90,6 @@ inputChest.PERIPHERAL_NAME = config.input
 outputChest.PERIPHERAL_NAME = config.output
 turtleChest.PERIPHERAL_NAME = config.turtleNeighbour.address
 turtleChest.POSITION = config.turtleNeighbour.pos:lower()
-threeXThreeMode = config.threeXThreeMode
 
 local _, block, suckFunc, dropFunc
 if turtleChest.POSITION == "up" or turtleChest.POSITION == "top" then
@@ -114,15 +117,6 @@ end
 local threeXThreeSlots = {1,2,3,5,6,7,9,10,11}
 local twoXTwoSlots = {1,2,5,6}
 
-local minToPull -- tODO: rewrite
-if threeXThreeMode then
-  slots = threeXThreeSlots
-  minToPull = 9
-else
-  slots = twoXTwoSlots
-  minToPull = 4
-end
-
 local function renderHeader()
   term.setCursorPos(1,1)
   term.setBackgroundColour(theme.header.bg)
@@ -143,11 +137,11 @@ local function renderFooter()
   print()
   term.clearLine()
   term.setCursorPos(1,h)
-  write("Press 2 or 3 to set mode.")
+  write("Press 2 or 3 to set mode. 1 to remove.")
 end
 
-local function renderRow(row, selected)
-  if selected then
+local function renderRow(row, isSelected)
+  if isSelected then
     term.setBackgroundColour(theme.selectedRow.bg)
     term.setTextColour(theme.selectedRow.fg)
     write(">")
@@ -166,33 +160,58 @@ local function renderRow(row, selected)
   write(" | "..row)
 end
 
-local function renderRows()
+local function renderRows(selected)
   local oldTerm = term.redirect(rowWin)
   term.setBackgroundColour(theme.main.bg)
   term.setTextColour(theme.main.fg)
+  term.setCursorPos(1,1)
   term.clear()
-  local rowNum = 1
-  for recipe in pairs(recipes or {}) do
+  for rowNum, recipe in ipairs(recipes or {}) do
     term.setCursorPos(1,rowNum)
-    renderRow(recipe, true)
-    rowNum = rowNum + 1
+    renderRow(recipe, selected == rowNum)
   end
   term.redirect(oldTerm)
 end
 
+local function renderError(e)
+  win.setVisible(false)
+  term.setCursorPos(1,1)
+  term.setBackgroundColour(theme.error.bg)
+  term.setTextColour(theme.error.fg)
+  term.clear()
+  term.write(e)
+  win.setVisible(true)
+end
+
 local function doUi()
+  local selected = 1
   while true do
     win.setVisible(false)
+    term.setCursorPos(1,1)
     term.setBackgroundColour(theme.main.bg)
     term.setTextColour(theme.main.fg)
     term.clear()
     renderHeader()
-     -- TODO: selection
-     -- TODO: paging
-    renderRows()
+    -- TODO: paging
+    renderRows(selected)
     renderFooter()
     win.setVisible(true)
-    os.pullEvent("key")
+    local event = table.pack(os.pullEvent())
+    if event[1] == "compact_error" then
+      renderError(event[2])
+    elseif event[1] == "key" then
+      if event[2] == keys.up and not event[3] then
+        selected = math.max(selected - 1, 1)
+      elseif event[2] == keys.down and not event[3] then
+        selected = math.min(selected + 1, recipes.n)
+      elseif event[2] == keys[3] and not event[3] then
+        recipes[recipes[selected]] = 3
+      elseif event[2] == keys[2] and not event[3] then
+        recipes[recipes[selected]] = 2
+      elseif event[2] == keys[1] and not event[3] then
+        recipes[recipes[selected]] = 1
+      end
+    end
   end
 end
 
@@ -204,8 +223,16 @@ local function pullInput()
       inputChest.pushItems(inputChest.PERIPHERAL_NAME, slot)
     end
     for slot, item in pairs(inputChest.list()) do
-      -- TODO: read the recipe to calculate the amount to pull
-      if item.count >= minToPull then
+      local minToPull
+      local hasRecipe = false
+      if recipes[item.name] == 3 then
+        minToPull = 9
+        hasRecipe = true
+      elseif recipes[item.name] == 2 then
+        minToPull = 4
+        hasRecipe = true
+      end
+      if hasRecipe and item.count >= minToPull then
         local limit = math.floor(item.count/minToPull)*minToPull
         inputChest.pushItems(turtleChest.PERIPHERAL_NAME, slot, limit)
         pulled = true
@@ -216,20 +243,25 @@ local function pullInput()
 end
 
 local function pullTurtle()
-  local amountToPull = 1
   local total = 0
+  local threeXThreeMode = false
   for _, item in pairs(turtleChest.list()) do
     total = total + item.count
+    threeXThreeMode = recipe[item.name] == 3
   end
-  -- TODO: read the recipe to calculate the mode to use
+
+
+  local amountToPull = 1
+  local slots
   if threeXThreeMode then
     amountToPull = math.floor(total/9)
+    slots = threeXThreeSlots
   else
     amountToPull = math.floor(total/4)
+    slots = twoXTwoSlots
   end
   amountToPull = math.min(amountToPull, 64)
 
-  -- TODO: read the recipe to calculate the slots to use
   for _, slot in ipairs(slots) do
     local currentCount = turtle.getItemCount(slot)
     if currentCount < amountToPull then
@@ -258,10 +290,8 @@ local function compact()
     pullTurtle()
     turtle.select(16)
     if turtle.getItemCount(1) > 0 and not turtle.craft() then
-      -- TODO: rewrite for UI
-      printError("Bad inventory, empty turtle chest and turtle then press any key to resume")
-      os.pullEvent("key")
-      print("resuming")
+      os.queueEvent("compact_error", "Bad inventory, empty turtle chest and turtle then press any key to resume")
+      os.pullEvent("compact_resume")
     end
     if turtle.getItemCount(16) > 0 then
       pushOutput()
@@ -296,9 +326,13 @@ end
 
 local function itemScanner()
   recipes = {
+    "minecraft:cobblestone",
+    "minecraft:stone",
+    "minecraft:woodPlanks",
     ["minecraft:cobblestone"] = 3,
     ["minecraft:stone"] = 2,
     ["minecraft:woodPlanks"] = 1,
+    ["n"] = 3,
   }
   while true do
 
