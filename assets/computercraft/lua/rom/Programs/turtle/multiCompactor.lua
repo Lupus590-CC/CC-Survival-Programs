@@ -267,26 +267,29 @@ local function pullInput()
     for slot in pairs(inputChest.list()) do
       inputChest.pushItems(inputChest.PERIPHERAL_NAME, slot)
     end
-    for slot, item in pairs(inputChest.list()) do
-      local minToPull
-      local hasRecipe = false
-      if recipes[item.name..":"..item.damage] == 3 then
-        minToPull = 9
-        hasRecipe = true
-      elseif recipes[item.name..":"..item.damage] == 2 then
-        minToPull = 4
-        hasRecipe = true
-      elseif recipes[item.name..":"..item.damage] == nil then
-        recipes[item.name..":"..item.damage] = 1
-        recipes.n = (recipes.n or 0) + 1
-        recipes[recipes.n] = item.name..":"..item.damage
-        saveRecipes()
-      end
-      if hasRecipe and item.count >= minToPull then
-        local limit = math.floor(item.count/minToPull)*minToPull
-        inputChest.pushItems(turtleChest.PERIPHERAL_NAME, slot, limit)
-        pulled = true
-        break
+
+    if not pairs(turtleChest.list())(turtleChest.list()) then
+      for slot, item in pairs(inputChest.list()) do
+        local minToPull
+        local hasRecipe = false
+        if recipes[item.name..":"..item.damage] == 3 then
+          minToPull = 9
+          hasRecipe = true
+        elseif recipes[item.name..":"..item.damage] == 2 then
+          minToPull = 4
+          hasRecipe = true
+        elseif recipes[item.name..":"..item.damage] == nil then
+          recipes[item.name..":"..item.damage] = 1
+          recipes.n = (recipes.n or 0) + 1
+          recipes[recipes.n] = item.name..":"..item.damage
+          saveRecipes()
+        end
+        if hasRecipe and item.count >= minToPull then
+          local limit = math.floor(item.count/minToPull)*minToPull
+          inputChest.pushItems(turtleChest.PERIPHERAL_NAME, slot, limit)
+          pulled = true
+          break
+        end
       end
     end
   until pulled
@@ -323,8 +326,8 @@ end
 local function pushOutput()
   turtle.select(16)
   dropFunc()
-  for slot in pairs(turtleChest.list()) do
-    turtleChest.pushItems(outputChest.PERIPHERAL_NAME, slot)
+  for slot, item in pairs(turtleChest.list()) do
+    while turtleChest.pushItems(outputChest.PERIPHERAL_NAME, slot) < item.count do end
   end
 end
 
@@ -333,6 +336,11 @@ local function compact()
   for _, slot in pairs(threeXThreeSlots) do
     turtle.select(slot)
     dropFunc()
+  end
+
+  local _,item = pairs(turtleChest.list())(turtleChest.list())
+  if not recipes[item.name..":"..item.damage] then
+    pushOutput()
   end
 
   while true do
