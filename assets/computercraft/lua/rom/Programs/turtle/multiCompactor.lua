@@ -161,21 +161,19 @@ local function renderRow(row, isSelected)
   end
   write(" | "..row)
 end
-local numberOnPage = 0 -- TODO: proper number on page calc
+
 local function renderRows(selected, page)
   local oldTerm = term.redirect(rowWin)
   term.setBackgroundColour(theme.main.bg)
   term.setTextColour(theme.main.fg)
   term.setCursorPos(1,1)
   term.clear()
-  numberOnPage = 0 -- TODO: proper number on page calc
   if recipes.n and recipes.n > 0 then
     for i = 1, pageSize do
       local itemToDisplay = pageSize*(page-1)+i
       if recipes[itemToDisplay] then
         term.setCursorPos(1, i)
         renderRow(recipes[itemToDisplay], selected == i)
-        numberOnPage = numberOnPage + 1 -- TODO: proper number on page calc
       end
     end
   end
@@ -229,23 +227,21 @@ local function doUi()
     elseif event[1] == "key" then
       if event[2] == keys.up and not event[3] then
         if selected == 1 and page > 1 then
-          selected = numberOnPage
           page = page -1
+          selected = pageSize
         else
           selected = math.max(selected - 1, 1)
         end
       elseif event[2] == keys.down and not event[3] then
-        -- TODO: proper number on page calc
         if selected == pageSize and page < pageCount then
           selected = 1
           page = page +1
         else
-          selected = math.min(selected + 1, numberOnPage)
+          selected = math.min(selected + 1, recipes.n - pageSize*(page-1))
         end
       elseif event[2] == keys.right and not event[3] then
         page = math.min(page + 1, pageCount or 1)
-        -- TODO: proper number on page calc
-        selected = math.min(selected, numberOnPage)
+        selected = math.min(selected, recipes.n - pageSize*(page-1))
       elseif event[2] == keys.left and not event[3] then
         page = math.max(page - 1, 1)
       elseif event[2] == keys.three and not event[3] then
