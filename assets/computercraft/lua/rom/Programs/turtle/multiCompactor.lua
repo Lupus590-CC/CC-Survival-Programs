@@ -19,7 +19,7 @@ local theme = {
     fg = colours.white,
     bg = colours.black,
   },
-  main =  {
+  error =  {
     fg = term.isColour() and colours.red or colours.black,
     bg = colours.black,
   },
@@ -179,8 +179,11 @@ local function renderError(e)
   term.setBackgroundColour(theme.error.bg)
   term.setTextColour(theme.error.fg)
   term.clear()
-  term.write(e)
+  term.setCursorPos(1,1)
+  write(e)
   win.setVisible(true)
+  os.pullEvent("key")
+  os.queueEvent("compact_resume")
 end
 
 local function doUi()
@@ -247,9 +250,8 @@ local function pullTurtle()
   local threeXThreeMode = false
   for _, item in pairs(turtleChest.list()) do
     total = total + item.count
-    threeXThreeMode = recipe[item.name] == 3
+    threeXThreeMode = recipes[item.name] == 3
   end
-
 
   local amountToPull = 1
   local slots
