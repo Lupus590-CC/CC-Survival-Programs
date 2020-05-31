@@ -1,3 +1,6 @@
+-- TODO: return garantee for chunk unloads
+-- TODO: place multiple computers with appropriate GPS
+
 while turtle.up() do
 end
 
