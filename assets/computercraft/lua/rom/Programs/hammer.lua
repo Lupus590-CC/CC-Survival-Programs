@@ -1,6 +1,6 @@
 local INPUT_CHEST_NAME = "minecraft:chest_21"
 local OUTPUT_CHEST_NAME = "minecraft:chest_22"
-local PASS_THROUGH_JUNK = true -- true to move unknown items to output, false to keep in input
+local PASS_THROUGH_JUNK = false -- true to move unknown items to output, false to keep in input
 
 -- TODO: seperate into two seperate programs for sieveing ande hammering
 
@@ -179,7 +179,7 @@ do
     else
       itemId1 = {}
     end
-    if itemId1 == itemId2 or (itemId1.name == itemId2.name and (itemId1.damage and itemId2.damage and itemId1.damage == itemId2.damage)) then
+    if itemId1 == itemId2 or (itemId1.name == itemId2.name and (itemId1.damage and itemId2.damage and itemId1.damage == itemId2.damage or true)) then
       return true
     end
     return false
@@ -507,19 +507,7 @@ local HAMMER_INPUT_SLOT = 1
 local HAMMER_OUTPUT_SLOTS = {2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21}
 local HAMMER_HAMMER_SLOTS = {22, 23}
 
-local HAMMERS = { -- hammers are entirely optional, they only speed it up
-  -- this is a priority order, we try to use the best hammer we can find first
-  { niceName = "diamondHammer", name = "exnihilocreatio:hammer_diamond"},
-  { niceName = "ironHammer", name = "exnihilocreatio:hammer_iron"},
-  { niceName = "stoneHammer", name = "exnihilocreatio:hammer_stone"},
-  { niceName = "woodHammer", name = "exnihilocreatio:hammer_wood"},
-  { niceName = "goldHammer", name = "exnihilocreatio:hammer_gold"},
-}
-for _, hammer in ipairs(HAMMERS) do
-  if hammer.niceName then
-    HAMMERS[hammer.niceName] = {name = hammer.name}
-  end
-end
+local diamondHammer = { name = "exnihilocreatio:hammer_diamond"}
 
 local HAMMERABLE = {
   ["minecraft:cobblestone"] = true,
@@ -536,8 +524,8 @@ local HAMMERABLE = {
 
 -- TODO: how to distibute what to rehammer and what to sieve?
 
-local inputChest = invUtils.inject(peripheral.wrap(INPUT_CHEST_NAME) or error("Couldn't find input chest: "..INPUT_CHEST_NAME))
-local outputChest = peripheral.wrap(OUTPUT_CHEST_NAME) or error("Couldn't find output chest: "..OUTPUT_CHEST_NAME)
+local inputChest = invUtils.inject(peripheral.wrap(INPUT_CHEST_NAME) or error("Couldn't find input chest: "..INPUT_CHEST_NAME, 0))
+local outputChest = peripheral.wrap(OUTPUT_CHEST_NAME) or error("Couldn't find output chest: "..OUTPUT_CHEST_NAME, 0)
 
 local function addPeripheralName(peripheralName, wrappedPeripheral)
   wrappedPeripheral.PERIPHERAL_NAME = peripheralName
@@ -589,10 +577,8 @@ local function loadHammers()
   for _, autoHammer in ipairs(autoHammers) do
     for _, hammerSlot in pairs(HAMMER_HAMMER_SLOTS) do
       if not autoHammer.getItem(hammerSlot) then
-        for _, hammer in ipairs(HAMMERS) do
-          for inputSlot in inputChest.eachSlotWithItem(hammer) do
-            inputChest.pushItems(autoHammer.PERIPHERAL_NAME, inputSlot, 1, hammerSlot)
-          end
+        for inputSlot in inputChest.eachSlotWithItem(diamondHammer) do
+          inputChest.pushItems(autoHammer.PERIPHERAL_NAME, inputSlot, 1, hammerSlot)
         end
       end
     end
@@ -619,18 +605,11 @@ local function empty()
   end
 end
 
-local function isHammer(itemName)
-  for _, hammer in ipairs(HAMMERS) do
-    if hammer.name == itemName then
-      return true
-    end
-  end
-  return false
-end
+
 
 local function passThroughJunk()
   for slot, item in inputChest.eachSlotSkippingEmpty() do
-    if not (HAMMERABLE[item.name] or isHammer(item.name)) then
+    if not (HAMMERABLE[item.name] or diamondHammer.name == item.name) then
       inputChest.pushItems(OUTPUT_CHEST_NAME, slot)
     end
   end

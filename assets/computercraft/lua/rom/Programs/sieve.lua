@@ -1,5 +1,5 @@
-local INPUT_CHEST_NAME = "minecraft:chest_23"
-local OUTPUT_CHEST_NAME = "minecraft:chest_24"
+local INPUT_CHEST_NAME = "minecraft:chest_25"
+local OUTPUT_CHEST_NAME = "minecraft:chest_26"
 local PASS_THROUGH_JUNK = true -- true to move unknown items to output, false to keep in input
 
 -- TODO: seperate into two seperate programs for sieveing ande hammering
@@ -179,7 +179,7 @@ do
     else
       itemId1 = {}
     end
-    if itemId1 == itemId2 or (itemId1.name == itemId2.name and (itemId1.damage and itemId2.damage and itemId1.damage == itemId2.damage)) then
+    if itemId1 == itemId2 or (itemId1.name == itemId2.name and (itemId1.damage and itemId2.damage and itemId1.damage == itemId2.damage or true)) then
       return true
     end
     return false
@@ -529,8 +529,8 @@ local SIEVABLE = { -- TODO: match to best mesh? let user pick?
   ["minecraft:soul_sand"] = true,
 }
 
-local inputChest = invUtils.inject(peripheral.wrap(INPUT_CHEST_NAME) or error("Couldn't find input chest: "..INPUT_CHEST_NAME))
-local outputChest = peripheral.wrap(OUTPUT_CHEST_NAME) or error("Couldn't find output chest: "..OUTPUT_CHEST_NAME)
+local inputChest = invUtils.inject(peripheral.wrap(INPUT_CHEST_NAME) or error("Couldn't find input chest: "..INPUT_CHEST_NAME, 0))
+local outputChest = peripheral.wrap(OUTPUT_CHEST_NAME) or error("Couldn't find output chest: "..OUTPUT_CHEST_NAME, 0)
 
 local function addPeripheralName(peripheralName, wrappedPeripheral)
   wrappedPeripheral.PERIPHERAL_NAME = peripheralName
