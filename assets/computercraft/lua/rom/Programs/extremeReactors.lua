@@ -3,7 +3,6 @@ local overrideSide = "top"
 local sleepTime = 1
 
 local reactor = peripheral.wrap(reactorName)
-
 local override = false
 
 local function maintainenceLoop()
