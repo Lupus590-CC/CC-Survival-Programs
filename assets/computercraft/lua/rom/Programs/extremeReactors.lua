@@ -1,5 +1,5 @@
 local reactorName = "BigReactors-Reactor_0"
-local overrideSide = "top"
+local overrideSide = "top" -- redstone signal disables the computers modifying the reactor
 local sleepTime = 1
 
 local reactor = peripheral.wrap(reactorName)
@@ -21,10 +21,21 @@ local function maintainenceLoop()
 end
 
 local function overrideSwitch()
+    local function printControlState()
+        if override then
+            print("manual override active")
+        else
+            print("reactor managed by computer")
+        end
+    end
+
+
     override = redstone.getInput(overrideSide)
+    printControlState()
     while true do
         os.pullEvent("redstone")
         override = redstone.getInput(overrideSide)
+        printControlState()
     end
 end
 
