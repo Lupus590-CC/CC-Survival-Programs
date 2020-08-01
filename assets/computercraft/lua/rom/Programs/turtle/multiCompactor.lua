@@ -339,7 +339,7 @@ local function compact()
   end
 
   local _,item = pairs(turtleChest.list())(turtleChest.list())
-  if not recipes[item.name..":"..item.damage] then
+  if item and (not recipes[item.name..":"..item.damage]) then
     pushOutput()
   end
 
