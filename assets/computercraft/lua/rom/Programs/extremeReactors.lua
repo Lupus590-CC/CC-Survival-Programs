@@ -2,7 +2,7 @@ local reactorName = "BigReactors-Reactor_0"
 local overrideSide = "top" -- redstone signal disables the computers modifying the reactor
 local sleepTime = 1
 
-local reactor = peripheral.wrap(reactorName)
+local reactor = peripheral.wrap(reactorName) or error("couldn't locate reactor with name/side "..reactorName)
 local override = false
 
 local function maintainenceLoop()
