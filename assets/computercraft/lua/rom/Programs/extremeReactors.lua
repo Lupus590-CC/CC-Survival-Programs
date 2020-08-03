@@ -1,6 +1,7 @@
 local reactorName = "BigReactors-Reactor_0"
 local overrideSide = "top" -- redstone signal disables the computers modifying the reactor
 local sleepTime = 1
+local rodInsertionAdditive = -0.4
 
 local reactor = peripheral.wrap(reactorName) or error("couldn't locate reactor with name/side "..reactorName)
 local override = false
@@ -12,7 +13,8 @@ local function maintainenceLoop()
             local energyStored = reactor.getEnergyStored()
             local energyCapacity = reactor.getEnergyCapacity()
             local energyFilledPercentage = (energyStored / energyCapacity) * 100
-            reactor.setAllControlRodLevels(energyFilledPercentage)
+            local rodLevelToSet = math.max(math.min(energyFilledPercentage + rodInsertionAdditive, 0), 100)
+            reactor.setAllControlRodLevels(rodLevelToSet)
             sleep(sleepTime)
         else
             os.pullEvent("redstone")
