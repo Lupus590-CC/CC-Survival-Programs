@@ -644,6 +644,7 @@ local function clearLeaves()
     veinMine()
     -- TODO: return to tree trunk
     -- TODO: percistance support
+    -- stack based movement tracking, serialize to file?
     checkpoint.reach("climbTreeSecond")
 end
 checkpoint.add("clearLeaves", clearLeaves)
