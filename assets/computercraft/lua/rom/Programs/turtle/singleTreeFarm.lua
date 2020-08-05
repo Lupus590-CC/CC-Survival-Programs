@@ -643,6 +643,7 @@ checkpoint.add("climbTreeSecond", climbTree, true)
 local function clearLeaves()
     veinMine()
     -- TODO: return to tree trunk
+    -- TODO: percistance support
     checkpoint.reach("climbTreeSecond")
 end
 checkpoint.add("clearLeaves", clearLeaves)
@@ -668,19 +669,30 @@ local function plantSapling()
             break
         end
     end
-    checkpoint.reach("offloadItems")
+    checkpoint.reach("offLoadItems")
 end
 checkpoint.add("plantSapling", plantSapling)
 
-local function offloadItems()
+local function offLoadItems()
+    local saplingSlot
     for i = 1, 16 do
+        local dumpItems = true
         turtle.select(i)
-        while turtle.getItemCount() > 0 do
+        local item = turtle.getItemDetail()
+        if item and item.name == saplings then
+            if saplingSlot then
+                turtle.transferTo(saplingSlot)
+            else
+                saplingSlot = i
+                dumpItems = false
+            end
+        end
+        while dumpItems and turtle.getItemCount() > 0 do
             turtle.dropDown()
         end
     end
     checkpoint.reach("waitForTree")
 end
-checkpoint.add("offloadItems", offloadItems)
+checkpoint.add("offLoadItems", offLoadItems)
 
 checkpoint.run("waitForTree")
