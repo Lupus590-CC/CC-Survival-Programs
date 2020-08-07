@@ -1,6 +1,6 @@
 -- WARNING: this program will not break branches, make sure that your tree will
 -- not make branches. you can achieve this by puting your tree in a room with
--- an appropiatly highted roof or by using a tree type which doesn't make
+-- an appropiatly highted roof (6 blocks high I believe) or by using a tree type which doesn't make
 -- branches
 local fuel = { ["minecraft:coal"] = true, ["minecraft:lava_bucket"] = true }
 local maxWaitTime = 120
@@ -206,9 +206,6 @@ do
     --
     --]]
 
-    -- TODO: cleanup code
-
-    -- TODO: use argValidationUtils?
     local function argChecker(position, value, validTypesList, level)
         -- check our own args first, sadly we can't use ourself for this
         if type(position) ~= "number" then
@@ -519,4 +516,4 @@ local function offLoadItems()
 end
 checkpoint.add("offLoadItems", offLoadItems)
 
-checkpoint.run("waitForTree")
+checkpoint.run("plantSapling")
