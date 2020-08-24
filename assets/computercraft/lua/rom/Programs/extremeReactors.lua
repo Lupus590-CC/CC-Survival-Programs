@@ -3,6 +3,8 @@ local turbineName = "BigReactors-Turbine_3"
 local overrideSide = "top" -- redstone signal disables the computers modifying the reactor
 local sleepTime = 1
 
+local TURBINE_SPEED_TOO_EXSTREAM_THRESHOLD = 100
+local TURBINE_SPEED_SLIGHTLY_THRESHOLD = 10
 local BEST_TURBINE_SPEED = 1800
 local reactor = peripheral.wrap(reactorName) or error("couldn't locate reactor with name/side "..reactorName, 0)
 local turbine = reactor.isActivelyCooled() and (peripheral.wrap(turbineName) or error("couldn't locate turbine with name/side "..turbineName, 0)) or nil
@@ -24,17 +26,78 @@ local function passivelyCooled()
     reactor.setAllControlRodLevels(rodLevelToSet)
 end
 
+local function isTurbineWayTooFast()
+    local turbineSpeed = turbine.getRotorSpeed()
+    local turbineSpeedDelta = turbineSpeed - BEST_TURBINE_SPEED
+    return turbineSpeedDelta > TURBINE_SPEED_TOO_EXSTREAM_THRESHOLD
+end
+
+local function isTurbineWayTooSlow()
+    local turbineSpeed = turbine.getRotorSpeed()
+    local turbineSpeedDelta =  BEST_TURBINE_SPEED - turbineSpeed
+    return turbineSpeedDelta > TURBINE_SPEED_TOO_EXSTREAM_THRESHOLD
+end
+
+local function isTurbineABitTooFast()
+    local turbineSpeed = turbine.getRotorSpeed()
+    local turbineSpeedDelta = turbineSpeed - BEST_TURBINE_SPEED
+    return turbineSpeedDelta > TURBINE_SPEED_SLIGHTLY_THRESHOLD
+end
+
+local function isTurbineABitTooSlow()
+    local turbineSpeed = turbine.getRotorSpeed()
+    local turbineSpeedDelta =  BEST_TURBINE_SPEED - turbineSpeed
+    return turbineSpeedDelta > TURBINE_SPEED_SLIGHTLY_THRESHOLD
+end
+
+local oldMode
+local function outputMode(mode)
+    if mode ~= oldMode then
+        print(mode)
+        oldMode = mode
+    end
+end
+
 local function activelyCooled()
     local energyStored = turbine.getEnergyStored()
     local energyCapacity = turbine.getEnergyCapacity()    
     local energyFilledPercentage = (energyStored / energyCapacity) * 100
-    turbine.setInductorEngaged(energyFilledPercentage < 75)
 
-    local turbineSpeed = turbine.getRotorSpeed()
-    if turbineSpeed > BEST_TURBINE_SPEED then
-        turbine.setFluidFlowRateMax(turbine.getFluidFlowRateMax()-1)
+
+    if isTurbineWayTooFast() then
+        outputMode("Slowing turbine back down to safe operation.")
+        turbine.setFluidFlowRateMax(0)
+        turbine.setInductorEngaged(true)
+    elseif isTurbineWayTooSlow() then
+        outputMode("Turbine is spinning up to optimal speed.")
+        turbine.setFluidFlowRateMax(turbine.getFluidFlowRateMaxMax())
+        turbine.setInductorEngaged(false)
     else
-        turbine.setFluidFlowRateMax(turbine.getFluidFlowRateMax()+1)
+        if energyFilledPercentage > 75 then
+            turbine.setInductorEngaged(false)
+            if isTurbineABitTooSlow() then
+                outputMode("Topping up speed.")
+                local oldSpeed = turbine.getRotorSpeed()
+                sleep(1)
+                if oldSpeed > turbine.getRotorSpeed() then
+                    turbine.setFluidFlowRateMax(turbine.getFluidFlowRateMax() + 1)
+                end
+            else
+                outputMode("Idling turbine.")
+                turbine.setFluidFlowRateMax(0)
+            end
+        else            
+            turbine.setInductorEngaged(true)
+            if isTurbineABitTooFast() then
+                outputMode("Reducing flow rate.")
+                -- TODO: the best flow rate changes depending on the size of the reactor and it's internal stucture
+            elseif isTurbineABitTooSlow() then
+                outputMode("Increasing flow rate.")
+                -- TODO: the best flow rate changes depending on the size of the reactor and it's internal stucture
+            else
+                outputMode("Turbine is operating at optimal speed.")
+            end
+        end
     end
 
     local steamStored = reactor.getHotFluidAmount()
@@ -83,6 +146,5 @@ local function overrideSwitch()
         printControlState()
     end
 end
-
 
 parallel.waitForAny(overrideSwitch, maintanenceLoop)
