@@ -1,5 +1,5 @@
 local reactorName = "BigReactors-Reactor_1"
-local turbineName = "BigReactors-Turbine_3"
+local turbineName = "BigReactors-Turbine_3" -- edit the config if you know the ideal steam flow rate to skip the lengthy calibration stage
 local overrideSide = "top" -- redstone signal disables the computers modifying the reactor
 local sleepTime = 1
 
@@ -9,6 +9,86 @@ local BEST_TURBINE_SPEED = 1800
 local reactor = peripheral.wrap(reactorName) or error("couldn't locate reactor with name/side "..reactorName, 0)
 local turbine = reactor.isActivelyCooled() and (peripheral.wrap(turbineName) or error("couldn't locate turbine with name/side "..turbineName, 0)) or nil
 local override = false
+
+local configFileName = fs.isReadOnly(fs.combine(shell.getRunningProgram(), "..")) and fs.getName(shell.getRunningProgram())..".config" or shell.getRunningProgram()..".config"
+local config
+do
+    --
+    -- Copyright 2019 Lupus590
+    --
+    -- Permission is hereby granted, free of charge, to any person obtaining a copy
+    -- of this software and associated documentation files (the "Software"), to deal
+    -- in the Software without restriction, including without limitation the rights
+    -- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    -- copies of the Software, and to permit persons to whom the Software is
+    -- furnished to do so, subject to the following conditions: The above copyright
+    -- notice and this permission notice shall be included in all copies or
+    -- substantial portions of the Software.
+    --
+    -- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    -- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    -- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    -- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    -- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    -- FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+    -- IN THE SOFTWARE.
+
+
+    -- heavily inspired by Lyqyd's own config API https://github.com/lyqyd/cc-configuration
+
+
+    local function tableMerge(...)
+        local args = table.pack(...)
+        local merged = {}
+        for _, arg in ipairs(args) do
+            for k, v in pairs(arg) do
+            merged[k] = v
+            end
+        end
+        return merged
+    end
+
+    local function load(filename, defaultConfig)
+        local function unsafeload()
+            local file = fs.open(filename, "r")
+            local data = textutils.unserialize(file.readAll())
+            data = tableMerge(defaultConfig or {}, data)
+            file.close()
+            return data
+        end
+
+        if (not fs.exists(filename)) or fs.isDir(filename) then
+            if defaultConfig ~= nil then
+                return true, defaultConfig
+            else
+                return false, "not a file"
+            end
+        end
+
+        return pcall(unsafeload)
+    end
+
+    local function save(filename, data) -- TODO: save with comments
+        local function unsafeSave()
+            local file = fs.open(filename, "w")
+            file.write(textutils.serialize(data))
+            file.close()
+        end
+
+        return pcall(unsafeSave)
+    end
+
+
+    config = {
+        load = load,
+        save = save,
+    }
+end
+local configOk, configData = config.load(configFileName, {idealFlowRate = turbine and turbine.getFluidFlowRateMaxMax()/2})
+if not configOk then
+    error("Error loading config: "..configData, 0)
+end
+local idealFlowRate = configData.idealFlowRate
 
 local function bufferOpimiser(x)
     -- https://www.desmos.com/calculator
@@ -63,7 +143,6 @@ local function activelyCooled()
     local energyCapacity = turbine.getEnergyCapacity()    
     local energyFilledPercentage = (energyStored / energyCapacity) * 100
 
-
     if isTurbineWayTooFast() then
         outputMode("Slowing turbine back down to safe operation.")
         turbine.setFluidFlowRateMax(0)
@@ -86,16 +165,37 @@ local function activelyCooled()
                 outputMode("Idling turbine.")
                 turbine.setFluidFlowRateMax(0)
             end
-        else            
+        else
             turbine.setInductorEngaged(true)
             if isTurbineABitTooFast() then
-                outputMode("Reducing flow rate.")
-                -- TODO: the best flow rate changes depending on the size of the reactor and it's internal stucture
+                outputMode("Reducing flow rate.")                
+                turbine.setFluidFlowRateMax(idealFlowRate)
+                local oldSpeed = turbine.getRotorSpeed()
+                sleep(1)
+                if oldSpeed < turbine.getRotorSpeed() then
+                    local flowRate = turbine.getFluidFlowRate()
+                    idealFlowRate = flowRate-1
+                    turbine.setFluidFlowRateMax(idealFlowRate)
+                end
             elseif isTurbineABitTooSlow() then
                 outputMode("Increasing flow rate.")
-                -- TODO: the best flow rate changes depending on the size of the reactor and it's internal stucture
+                local oldSpeed = turbine.getRotorSpeed()
+                sleep(1)
+                if oldSpeed > turbine.getRotorSpeed() then
+                    if turbine.getFluidFlowRate()+1 > turbine.getFluidFlowRateMax() then -- if the actual flow rate is less than the max then changing the max is not going to help
+                        idealFlowRate = idealFlowRate+1
+                        turbine.setFluidFlowRateMax(idealFlowRate)
+                    end
+                end
             else
                 outputMode("Turbine is operating at optimal speed.")
+                turbine.setFluidFlowRateMax(idealFlowRate)
+            end
+            print(idealFlowRate)
+            configData.idealFlowRate = idealFlowRate
+            local configSaveOk, err = config.save(configFileName, configData)
+            if not configSaveOk then
+                error("Error saving config: "..err, 0)
             end
         end
     end
