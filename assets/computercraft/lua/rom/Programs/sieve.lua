@@ -2,7 +2,7 @@ local INPUT_CHEST_NAME = "minecraft:chest_25"
 local OUTPUT_CHEST_NAME = "minecraft:chest_26"
 local PASS_THROUGH_JUNK = true -- true to move unknown items to output, false to keep in input
 
--- TODO: seperate into two seperate programs for sieveing ande hammering
+-- TODO: remove unused API functions
 
 local argValidationUtils
 do
@@ -33,16 +33,6 @@ do
     for k, v in ipairs(validTypesList) do
       if type(value) == v then
         return
-      --[[ -- TODO: allow users to pass in functions instead? Do this for each of the checkers?
-    elseif v == "callable" then -- TODO: is this a good idea? #discord
-        if type(value) == "function" then
-          return
-        elseif type(value) == "table" then
-          local meta = getmetatable(value)
-          if type(meta) == "table" and type(meta.__call) == "function" then
-            return
-          end
-        end--]]
       end
     end
   
@@ -232,7 +222,6 @@ do
       argValidationUtils.tableChecker("arg[1]", inventory, {size = {"function"}, getItem = {"function"}, list = {"function"}})
     end
 
-    -- TODO: conform to lua iterators better, see how `pairs` works
     inventory.eachSlot = function()
       local currentSlot = 0
       local invSize = inventory.size()
@@ -380,7 +369,7 @@ do
 
       local tasks = {}
       local itemMetaOrGetitemFunc = inventory.getItemMeta or inventory.getItemInfo
-      for i = 1, inventory.size() do -- TODO: check performance on large inventories #homeOnly
+      for i = 1, inventory.size() do
         tasks[i] = function()
           local slot = i
           callback(slot, itemMetaOrGetitemFunc(slot))
@@ -485,7 +474,7 @@ do
         argValidationUtils.tableChecker("self", inventory, {list = {"function"}, PERIPHERAL_NAME = {"string"}, pushItems = {"function"}})
         local tasks = {}
         local taskCount = 0
-        for slot in pairs(inventory.list()) do  -- TODO: check performance on large inventories #homeOnly
+        for slot in pairs(inventory.list()) do
           taskCount = taskCount + 1
           tasks[taskCount] = function() inventory.pushItems(inventory.PERIPHERAL_NAME, slot) end
         end

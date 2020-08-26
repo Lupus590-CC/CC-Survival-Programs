@@ -68,7 +68,7 @@ do
         return pcall(unsafeload)
     end
 
-    local function save(filename, data) -- TODO: save with comments
+    local function save(filename, data)
         local function unsafeSave()
             local file = fs.open(filename, "w")
             file.write(textutils.serialize(data))
