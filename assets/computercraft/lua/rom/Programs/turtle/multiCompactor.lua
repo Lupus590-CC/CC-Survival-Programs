@@ -38,9 +38,6 @@ local recipeFileName = shell.getRunningProgram()..".recipes"
 
 local recipes
 local config
-local inputChest
-local outputChest
-local turtleChest
 
 local function loadConfig()
   local function unsafeload()
