@@ -10,7 +10,7 @@ local reactor = peripheral.wrap(reactorName) or error("couldn't locate reactor w
 local turbine = reactor.isActivelyCooled() and (peripheral.wrap(turbineName) or error("couldn't locate turbine with name/side "..turbineName, 0)) or nil
 local override = false
 
-local configFileName = fs.isReadOnly(fs.combine(shell.getRunningProgram(), "..")) and fs.getName(shell.getRunningProgram())..".config" or shell.getRunningProgram()..".config"
+local configFileName = fs.isReadOnly(fs.getDir(shell.getRunningProgram())) and fs.getName(shell.getRunningProgram())..".config" or shell.getRunningProgram()..".config" -- TODO: avoid startup folder
 local config
 do
     --

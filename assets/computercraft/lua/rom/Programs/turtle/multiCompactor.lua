@@ -33,8 +33,8 @@ term.redirect(win) -- really we should capture the old term but everything seems
 local pageSize = h-3
 local rowWin = window.create(win, 1,2, w, pageSize)
 
-local configFileName = shell.getRunningProgram()..".config"
-local recipeFileName = shell.getRunningProgram()..".recipes"
+local configFileName = fs.isReadOnly(fs.getDir(shell.getRunningProgram())) and fs.getName(shell.getRunningProgram())..".config" or shell.getRunningProgram()..".config" -- TODO: avoid startup folder
+local recipeFileName = fs.isReadOnly(fs.getDir(shell.getRunningProgram())) and fs.getName(shell.getRunningProgram())..".recipes" or shell.getRunningProgram()..".recipes" -- TODO: avoid startup folder
 
 local recipes
 local config
