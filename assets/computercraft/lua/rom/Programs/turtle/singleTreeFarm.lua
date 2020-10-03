@@ -4,11 +4,303 @@
 -- branches
 local fuel = { ["minecraft:coal"] = true, ["minecraft:lava_bucket"] = true }
 local maxWaitTime = 120
+local targetFuelLevel = 500
 
 local leaves = "minecraft:leaves"
 local logs = "minecraft:log"
 local saplings = "minecraft:sapling"
+local chest = "minecraft:chest"
+local trappedChest = "minecraft:trapped_chest"
 local scanner = peripheral.find("plethora:scanner")
+
+local lama = {}
+local lamaInit = false
+do
+    --[[ The MIT License (MIT)
+
+    -- Copyright (c) 2015 KingofGamesYami
+
+    -- Permission is hereby granted, free of charge, to any person obtaining a copy
+    -- of this software and associated documentation files (the "Software"), to
+    -- deal in the Software without restriction, including without limitation the
+    -- rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+    -- sell copies of the Software, and to permit persons to whom the Software is
+    -- furnished to do so, subject to the following conditions: The above copyright
+    -- notice and this permission notice shall be included in all copies or
+    -- substantial portions of the Software.
+    --
+    -- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    -- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    -- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    -- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    -- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    -- FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+    -- IN THE SOFTWARE.
+    --]]
+
+    -- Converted to be Require compatible by Lupus590 and released under the same MIT license.
+    -- Look for REQUIRE_COMPAT in comments, the connected multi line comments are removed original stuff with the replacement under that.
+
+    -- TODO: copy to hive (I think I fixed the require compatablility)
+
+    -- TODO: reference frames? may need a full rewrite
+    -- how to track reference frames?
+    -- how to access reference frames?
+    -- push/pop interface for creating and removing reference frames
+    -- don't forget to use argValidationUtils
+
+    -- REQUIRE_COMPAT
+
+    --Copy the default turtle directory
+    local turtle = {}
+    for k, v in pairs( _G.turtle ) do
+        turtle[ k ] = v
+    end
+
+    --copy default gps
+    local gps = {}
+    for k, v in pairs( _G.gps ) do
+        gps[ k ] = v
+    end
+
+    if not fs.isDir( ".lama" ) then
+        local _, blockInfoDown = turtle.inspectDown()        
+        local _, blockInfoForwards = turtle.inspect()
+        if blockInfoDown and blockInfoDown.name == chest and blockInfoForwards and (blockInfoForwards.name == logs or blockInfoForwards.name == saplings) then
+            lamaInit = true
+        else
+            error("Not in the right location, this is not home. A sapling or log is used for orientation, try planting one if you are sure this is right.", 0)
+        end
+
+        fs.makeDir( ".lama" )
+    end
+
+    -- REQUIRE_COMPAT
+    _G.LAMA = {}
+    local env = lama
+
+    local fuel = {}
+    local facing = {}
+    local position = {}
+
+    --Fuel tracking
+    fuel.load = function() --loading fuel data
+        if fs.exists( ".lama/fuel" ) then --if we've got previous data, we want to use it
+            local file = fs.open( ".lama/fuel", "r" )
+            fuel.amount = tonumber( file.readAll() )
+            file.close()
+        else --otherwise, use the current fuel level
+            fuel.amount = turtle.getFuelLevel()
+        end
+    end
+
+    fuel.save = function() --save fuel data
+        local file = fs.open( ".lama/fuel", "w" )
+        file.write( fuel.amount )
+        file.close()
+    end
+
+    --facing tracking
+    facing.turnRight = function() --changes the facing clockwise (on a compass) once
+        if facing.face == "north" then
+            facing.face = "east"
+        elseif facing.face == "east" then
+            facing.face = "south"
+        elseif facing.face == "south" then
+            facing.face = "west"
+        elseif facing.face == "west" then
+            facing.face = "north"
+        end
+    end
+
+    facing.save = function() --saves facing and current movement direction
+        local file = fs.open( ".lama/facing", "w" )
+        file.write( textutils.serialize( {facing.face, facing.direction} ) )
+        file.close()
+    end
+
+    facing.load = function() --loads facing / current movement direction
+        if fs.exists( ".lama/facing" ) then --if we have previous data, we use it
+            local file = fs.open( ".lama/facing", "r" )
+            facing.face, facing.direction = unpack( textutils.unserialize( file.readAll() ) )
+            file.close()
+        else --otherwise, try to locate via gps
+            local x, y, z = gps.locate(1)
+            if x and turtle.forward() then
+            local newx, newy, newz = gps.locate(1)
+            if not newx then --we didn't get a location
+                facing.face = "north" --default
+            elseif newx > x then
+                facing.face = "east"
+            elseif newx < x then
+                facing.face = "west"
+            elseif newz > z then
+                facing.face = "south"
+            elseif newz < z then
+                facing.face = "north"
+            end
+            else
+            facing.face = "north" --we couldn't move forward, something was obstructing
+            end
+        end
+    end
+
+    --position tracking
+    position.save = function() --saves position (x, y, z)
+        position.update() --update the position based on direction and fuel level, then save it to a file
+        local file = fs.open( ".lama/position", "w" )
+        file.write( textutils.serialize( { position.x, position.y, position.z } ) )
+        file.close()
+    end
+
+    position.load = function() --loads position (x, y z)
+        if fs.exists( ".lama/position" ) then --if we have previous data, use it
+            local file = fs.open( ".lama/position", "r" )
+            position.x, position.y, position.z = unpack( textutils.unserialize( file.readAll() ) )
+            file.close()
+        else --otherwise try for gps coords
+            local x, y, z = gps.locate(1)
+            if x then
+            position.x, position.y, position.z = x, y, z
+            else --now we assume 1,1,1
+            position.x, position.y, position.z = 1, 1, 1
+            end
+        end
+    end
+
+    position.update = function() --updates the position of the turtle
+        local diff = fuel.amount - turtle.getFuelLevel()
+        if diff > 0 then --if we've spent fuel (ei moved), we'll need to move that number in a direction
+            if facing.direction == 'east' then
+            position.x = position.x + diff
+            elseif facing.direction == "west" then
+            position.x = position.x - diff
+            elseif facing.direction == "south" then
+            position.z = position.z + diff
+            elseif facing.direction == "north" then
+            position.z = position.z - diff
+            elseif facing.direction == "up" then
+            position.y = position.y + diff
+            elseif facing.direction == "down" then
+            position.y = position.y - diff
+            end
+        end
+        fuel.amount = turtle.getFuelLevel() --update the fuel amount
+        fuel.save() --save the fuel amount
+    end
+
+    --direct opposite compass values, mainly for env.back
+    local opposite = {
+        ["north"] = "south",
+        ["south"] = "north",
+        ["east"] = "west",
+        ["west"] = "east",
+    }
+
+    env.forward = function() --basically, turtle.forward
+        if facing.direction ~= facing.face then --if we were going a different direction before
+            position.save() --save out position
+            facing.direction = facing.face --update the direction
+            facing.save() --save the direction
+        end
+        return turtle.forward() --go forward, return result
+    end
+
+    env.back = function() --same as env.forward, but going backwards
+        if facing.direction ~= opposite[ facing.face ] then
+            position.save()
+            facing.direction = opposite[ facing.face ]
+            facing.save()
+        end
+        return turtle.back()
+    end
+
+    env.up = function() --turtle.up
+        if facing.direction ~= "up" then --if we were going a different direction
+            position.save() --save our position
+            facing.direction = "up" --set the direction to up
+            facing.save() --save the direction
+        end
+        return turtle.up() --go up, return result
+    end
+
+    env.down = function() --env.up, but for going down
+        if facing.direction ~= "down" then
+            position.save()
+            facing.direction = "down"
+            facing.save()
+        end
+        return turtle.down()
+    end
+
+    env.turnRight = function() --turtle.turnRight
+        position.save() --save the position (x,y,z)
+        facing.turnRight() --update our compass direction
+        facing.save() --save it
+        return turtle.turnRight() --return the result
+    end
+
+    env.turnLeft = function() --env.turnRight, but the other direction
+        position.save()
+        facing.turnRight() --going clockwise 3 times is the same as
+        facing.turnRight() --going counterclockwise once
+        facing.turnRight()
+        facing.save()
+        return turtle.turnLeft()
+    end
+
+    env.refuel = function( n ) --needed because we depend on fuel level
+        position.update() --update our position
+        if turtle.refuel( n ) then --if we refueled then
+            fuel.amount = turtle.getFuelLevel() --set our amount to the current level
+            fuel.save() --save that amount
+            return true
+        end
+        return false --otherwise, return false
+    end
+
+    env.overwrite = function( t ) --writes env values into the table given
+        t = t or _G.turtle    --or, if no value was given, _G.turtle
+        for k, v in pairs( env ) do
+            t[ k ] = v
+        end
+    end
+
+    env.getPosition = function() --returns the current position of the turtle
+        position.update() --first we should update the position (otherwise it'll give coords of the last time we did this)
+        return position.x, position.y, position.z, facing.face
+    end
+
+    env.setPosition = function( x, y, z, face ) --sets the current position of the turtle
+        position.x = x
+        position.y = y
+        position.z = z
+        facing.face = face or facing.face --default the the current facing if it's not provided
+        position.save() --save our new position
+        facing.save() --save the way we are facing
+    end
+
+    --overwrite gps.locate
+    _G.gps.locate = function( n, b )
+    local x, y, z, facing = env.getPosition()
+    return x, y, z
+    end
+
+    facing.load()
+    position.load()
+    fuel.load()
+
+    fuel.save()
+    position.save()
+    facing.save()
+
+    -- REQUIRE_COMPAT
+    _G.LAMA = env
+end
+lama.overwrite()
+if lamaInit then
+    lama.setPosition(0, 0, 0, "north") -- we don't care if this is true globally, we just want to be able to find it again
+end
 
 local movementStack = {}
 do
@@ -76,6 +368,10 @@ do
     end
 
     function movementStack.pop() -- TODO: inteligently look several ahead and simplify rotations
+        
+        if stack.n-1 < 0 then
+            error("got lost", 0)
+        end
         local moveToUndo = stack[stack.n]
         stack[stack.n] = nil
         stack.n = stack.n-1
@@ -117,7 +413,7 @@ do
                 turtle.dig()
                 movementStack.pushForward()
                 veinMine()
-                movementStack.pop()
+                if not movementStack.pop() then error("Bad pop movement.") end
             end
             movementStack.pushTurnRight()
         end
@@ -125,16 +421,16 @@ do
             turtle.digUp()
             movementStack.pushUp()
             veinMine()
-            movementStack.pop()
+            if not movementStack.pop() then error("Bad pop movement.") end
         end
         if isDesireableDown() then
             turtle.digDown()
             movementStack.pushDown()
             veinMine()
-            movementStack.pop()
+            if not movementStack.pop() then error("Bad pop movement.") end
         end
         for i = 1, 4 do
-            movementStack.pop()
+            if not movementStack.pop() then error("Bad pop movement.") end
         end
     end
 end
@@ -423,15 +719,28 @@ do
     end
 end
 
+local function progressivlyLongerWaitFor(callback, maxWaitTime)
+    if type(callback) ~= "function" then
+        error("bad arg[1], expected function got "..type(callback), 2)
+    end
+    if maxWaitTime ~= nil and type(maxWaitTime) ~= "number" then
+        error("bad arg[2], expected number or nil got "..type(maxWaitTime), 2)
+    end
+
+    maxWaitTime = maxWaitTime or math.huge
+    local sleepTime = 0
+    while not callback() do
+        sleepTime = math.min(sleepTime + math.floor(sleepTime/2) +1, maxWaitTime)
+        os.sleep(sleepTime)
+    end
+end
 
 local function waitForTree()
-    local sleepTime = 0
-    local _, blockData = turtle.inspect()
-    while not (blockData and blockData.name == logs) do
-      sleepTime = math.min(sleepTime + math.floor(sleepTime/2) +1, maxWaitTime)
-      os.sleep(sleepTime)
-      _, blockData = turtle.inspect()
+    local function callback()
+        local _, blockData = turtle.inspect()
+        return blockData and (blockData.name == logs)
     end
+    progressivlyLongerWaitFor(callback, maxWaitTime)
     checkpoint.reach("climbTreeFirst")
 end
 checkpoint.add("waitForTree", waitForTree)
@@ -455,11 +764,120 @@ checkpoint.add("climbTreeSecond", climbTree, true)
 
 -- TODO: remove the bounce after clearing the leaves
 
-local function clearLeaves()
+local function unsafeClearLeaves()
     veinMine()
     while movementStack.hasMovements() do -- TODO: remove the extra spinning
         movementStack.pop()
         veinMine()
+    end
+end
+
+local logMode = false
+local function tryForwards()
+    while not turtle.forward() do
+        if turtle.getFuelLevel == 0 then
+            error("Out of fuel.", 0)
+        end
+        local _, blockData = turtle.inspect()
+        if blockData and blockData.name == leaves then
+            turtle.dig()
+        elseif blockData and blockData.name == logs then
+            if logMode then
+                error("Even LAMA is lost, delete the .lama folder.", 0)
+            end
+            logMode = true
+            turtle.turnRight()
+            tryForwards()
+            turtle.turnLeft()
+            tryForwards()
+            tryForwards()
+            turtle.turnLeft()
+            tryForwards()
+            turtle.turnRight()
+            logMode = false
+        elseif blockData then
+            error("Unknown obstruction. LAMA could be lost, delete the .lama folder if you belive that it is.", 0)
+        end
+    end
+end
+
+local function clearLeaves()
+    local ok, msg = pcall(unsafeClearLeaves)
+    if not ok then --msg == "Terminated" or msg == "Bad pop movement." or msg == "got lost"
+        error(msg, 0)
+    end
+
+    local x, y, z, f = lama.getPosition()
+    if x ~= 0 or y <0 or y > 10 or z ~= 0 then
+        -- east = +x
+        -- north = -z
+        while x > 0 do
+            while f ~= "west" do
+                turtle.turnRight()
+                x, y, z, f = lama.getPosition()
+            end
+            tryForwards()
+            x, y, z, f = lama.getPosition()
+        end
+
+        x, y, z, f = lama.getPosition()
+        while x < 0 do
+            while f ~= "east" do
+                turtle.turnRight()
+                x, y, z, f = lama.getPosition()
+            end
+            tryForwards()
+            x, y, z, f = lama.getPosition()
+        end
+
+        x, y, z, f = lama.getPosition()
+        while z < 0 do
+            while f ~= "south" do
+                turtle.turnRight()
+                x, y, z, f = lama.getPosition()
+            end
+            tryForwards()
+            x, y, z, f = lama.getPosition()
+        end
+
+        x, y, z, f = lama.getPosition()
+        while z > 0 do
+            while f ~= "north" do
+                turtle.turnRight()
+                x, y, z, f = lama.getPosition()
+            end
+            tryForwards()
+            x, y, z, f = lama.getPosition()
+        end
+
+        x, y, z, f = lama.getPosition()
+        while y > 0 do
+            while not turtle.down() do
+                if turtle.getFuelLevel == 0 then
+                    error("Out of fuel.", 0)
+                end
+                local _, blockData = turtle.inspectDown()
+                if blockData and blockData.name == leaves then
+                    turtle.digDown()
+                elseif blockData and blockData.name == logs then
+                    error("Even LAMA is lost, delete the .lama folder.", 0)
+                elseif blockData then
+                    error("Unknown obstruction. LAMA could be lost, delete the .lama folder if you belive that it is.", 0)
+                end
+            end
+            x, y, z, f = lama.getPosition()
+        end
+        if y ~= 0 then
+            error("Even LAMA is lost, delete the .lama folder.", 0)
+        end
+
+        x, y, z, f = lama.getPosition()
+        while f ~= "north" do
+            turtle.turnRight()
+            x, y, z, f = lama.getPosition()
+        end
+        checkpoint.reach("climbTreeFirst")
+        return
     end
     checkpoint.reach("climbTreeSecond")
 end
@@ -486,34 +904,84 @@ local function plantSapling()
             break
         end
     end
-    checkpoint.reach("offLoadItems")
+    checkpoint.reach("refuelAndOffLoad")
 end
 checkpoint.add("plantSapling", plantSapling)
 
-local function offLoadItems()
-    -- TODO: refuel from logs
-    -- TODO: fuel chest
-    -- TODO: don't dump fuel
+local function refuelAndOffLoad()
+    local function dump()
+        while turtle.getItemCount() > 0 do
+            if not turtle.dropDown() then
+                print("output full, sleeping")                
+                progressivlyLongerWaitFor(turtle.dropDown, maxWaitTime)
+            end
+        end
+    end
+
     local saplingSlot
     for i = 1, 16 do
-        local dumpItems = true
         turtle.select(i)
         local item = turtle.getItemDetail()
         if item and item.name == saplings then
             if saplingSlot then
                 turtle.transferTo(saplingSlot)
-                turtle.refuel()
+                dump()
             else
                 saplingSlot = i
-                dumpItems = false
+            end
+        elseif item and fuel[item.name] then
+        else
+            dump()
+        end
+    end
+
+    if turtle.getFuelLevel() < targetFuelLevel then
+        local _, block = turtle.inspect()
+        while block.name ~= chest and block.name ~= trappedChest do
+            turtle.turnLeft()
+            _, block = turtle.inspect()
+        end
+
+        for i = 1, 16 do
+            turtle.select(i)
+            local item = turtle.getItemDetail()
+            if item and fuel[item.name] then
+                while turtle.getFuelLevel() < targetFuelLevel and turtle.refuel(1) do end
+            end
+            item = turtle.getItemDetail()
+            if item and not (item.name == saplings or fuel[item.name]) then
+                dump()
             end
         end
-        while dumpItems and turtle.getItemCount() > 0 do
-            turtle.dropDown()
+
+        local item = turtle.getItemDetail()
+        if not (item and fuel[item.name]) then
+            turtle.suck()
         end
+
+        while turtle.getFuelLevel() < targetFuelLevel and turtle.refuel(1) do
+            local item = turtle.getItemDetail()
+            if item and not fuel[item.name] then
+                dump()
+            end
+            turtle.suck(turtle.getItemSpace())
+        end
+        item = turtle.getItemDetail()
+        if item and not fuel[item.name] then
+            dump()
+        end
+
+    end
+
+    local _, block = turtle.inspect()
+    while block.name ~= logs and block.name ~= saplings do
+        turtle.turnRight()
+        _, block = turtle.inspect()
     end
     checkpoint.reach("waitForTree")
 end
-checkpoint.add("offLoadItems", offLoadItems)
+checkpoint.add("refuelAndOffLoad", refuelAndOffLoad)
+
+
 
 checkpoint.run("plantSapling")
