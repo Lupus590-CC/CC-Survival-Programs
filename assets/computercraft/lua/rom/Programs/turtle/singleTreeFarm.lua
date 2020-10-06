@@ -2,7 +2,7 @@
 -- not make branches. you can achieve this by puting your tree in a room with
 -- an appropiatly highted roof (6 blocks high I believe) or by using a tree type which doesn't make
 -- branches
-local fuel = { ["minecraft:coal"] = true, ["minecraft:lava_bucket"] = true }
+local fuel = { ["minecraft:coal"] = true, ["minecraft:lava_bucket"] = true, ["chisel:block_charcoal"] = true, ["chisel:block_charcoal1"] = true, ["chisel:block_charcoal2"] = true }
 local maxWaitTime = 120
 local targetFuelLevel = 500
 
