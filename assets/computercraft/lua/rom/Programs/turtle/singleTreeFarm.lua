@@ -970,7 +970,6 @@ local function refuelAndOffLoad()
         if item and not fuel[item.name] then
             dump()
         end
-        local function (
         if turtle.getFuelLevel() < targetFuelLevel then
             sleep(maxWaitTime)
         end
