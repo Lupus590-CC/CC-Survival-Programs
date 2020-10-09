@@ -935,7 +935,7 @@ local function refuelAndOffLoad()
         end
     end
 
-    if turtle.getFuelLevel() < targetFuelLevel then
+    while turtle.getFuelLevel() < targetFuelLevel do
         local _, block = turtle.inspect()
         while block.name ~= chest and block.name ~= trappedChest do
             turtle.turnLeft()
@@ -970,7 +970,10 @@ local function refuelAndOffLoad()
         if item and not fuel[item.name] then
             dump()
         end
-
+        local function (
+        if turtle.getFuelLevel() < targetFuelLevel then
+            sleep(maxWaitTime)
+        end
     end
 
     local _, block = turtle.inspect()
