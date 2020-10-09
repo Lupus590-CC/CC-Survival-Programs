@@ -6,6 +6,8 @@ local sleepTime = 120
 local compactorInputChest = "minecraft:chest_44"
 local compactorOutputChest = "minecraft:chest_43"
 
+-- end of config
+
 local electricFurnaceName = "minecraft:gc electric furnace"
 local electricFurnaceInputSlot = 2
 local electricFurnaceOutputSlots = {3,4}
