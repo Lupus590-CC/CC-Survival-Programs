@@ -1,6 +1,6 @@
 local dir = ...
 if dir and type(dir) ~= "string" then
-  error("bad arg")
+  error("bad arg", 0)
 end
 dir = dir and dir:lower() or nil
 if dir == "d" or dir == "down" then
@@ -10,5 +10,5 @@ elseif dir == "u" or dir == "up" then
 elseif dir == nil or dir == "f" or dir == "forwards" or dir == "forward" then
   turtle.dig()
 else
-  error("bad arg")
+  error("bad arg", 0)
 end
