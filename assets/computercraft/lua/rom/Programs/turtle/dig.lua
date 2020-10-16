@@ -1,9 +1,11 @@
 
-local completion = require("cc.shell.completion")
+if not shell.complete(shell.getRunningProgram().." ") then
+  local completion = require("cc.shell.completion")
 
-shell.setCompletionFunction(shell.getRunningProgram(), completion.build(
-    { completion.choice, { "down", "up", "forward" } }
-))
+  shell.setCompletionFunction(shell.getRunningProgram(), completion.build(
+      { completion.choice, { "down", "up", "forward" } }
+  ))
+end
 
 local dir = ...
 if dir and type(dir) ~= "string" then
