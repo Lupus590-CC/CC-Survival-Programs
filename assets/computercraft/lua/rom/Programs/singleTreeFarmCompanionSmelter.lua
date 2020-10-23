@@ -1,10 +1,12 @@
 local inputChests = {"minecraft:chest_41", "minecraft:chest_45"}
 local refuelChests = {"minecraft:chest_40", "minecraft:chest_46"}
 local outputChest = "minecraft:chest_42"
-local proportionOfWoodToSmelt = 1/2
-local sleepTime = 120
 local compactorInputChest = "minecraft:chest_44"
 local compactorOutputChest = "minecraft:chest_43"
+local proportionOfWoodToSmelt = 1/2
+local sleepTime = 120
+
+-- end of config
 
 local electricFurnaceName = "minecraft:gc electric furnace"
 local electricFurnaceInputSlot = 2
