@@ -14,6 +14,7 @@ local statusSleetTime = 60
 
 -- CONFIG END
 peripheral.find("modem", function(side) rednet.open(side) end)
+local REACTOR_PROTOCOL = "Lupus590:extreamReactors/status"
 
 local FUELS = {
     ["bigreactors:ingotblutonium"] = "Bluetonium ingots",
@@ -30,6 +31,7 @@ local cyaniteOutputHatch = peripheral.wrap(cyaniteOutputHatchName)
 local TURBINE_SPEED_TOO_EXSTREAM_THRESHOLD = 100
 local TURBINE_SPEED_SLIGHTLY_THRESHOLD = 10
 local BEST_TURBINE_SPEED = 1800
+
 local reactor = peripheral.wrap(reactorName) or error("couldn't locate reactor with name/side "..reactorName, 0)
 local turbine = reactor.isActivelyCooled() and (peripheral.wrap(turbineName) or error("couldn't locate turbine with name/side "..turbineName, 0)) or nil
 local override = false
@@ -114,6 +116,18 @@ if not configOk then
 end
 local idealFlowRate = configData.idealFlowRate
 
+local lastStatus
+local function updateStatus(newStatus, usePrintError)
+    if lastStatus ~= newStatus then
+        rednet.broadcast({reactorName = statusMessageIdentifier, status = newStatus},REACTOR_PROTOCOL)
+        if usePrintError then
+            printError(newStatus)
+        else
+            print(newStatus)
+        end
+    end
+end
+
 local function bufferOpimiser(x)
     -- https://www.desmos.com/calculator
     x = math.min(math.max(x, 0), 100)
@@ -157,7 +171,7 @@ end
 local oldMode
 local function outputMode(mode)
     if mode ~= oldMode then
-        print(mode)
+        updateStatus(mode)
         oldMode = mode
     end
 end
@@ -215,7 +229,6 @@ local function activelyCooled()
                 outputMode("Turbine is operating at optimal speed.")
                 turbine.setFluidFlowRateMax(idealFlowRate)
             end
-            print(idealFlowRate)
             configData.idealFlowRate = idealFlowRate
             local configSaveOk, err = config.save(configFileName, configData)
             if not configSaveOk then
@@ -256,9 +269,10 @@ end
 local function overrideSwitch()
     local function printControlState()
         if override then
-            print("manual override active")
+            updateStatus("Manual override active")
+            
         else
-            print("reactor managed by computer")
+            updateStatus("Reactor managed by computer")
         end
     end
 
@@ -271,23 +285,33 @@ local function overrideSwitch()
     end
 end
 
-local lastState
-local function statusSystem()
-    while true do
-
-    end
-end
-
 local function fuelSystem()
     while true do
-        cyaniteOutputHatchName.pushItems(cyaniteChestName, 1)
-        for slot, item in pairs(fuelChest.list()) do
-            if FUELS[item.name] then
-                fuelChest.pushItems(fuelInputHatch, slot)
+        if not override then
+            cyaniteOutputHatch.pushItems(cyaniteChestName, 1)
+            for slot, item in pairs(fuelChest.list()) do
+                if FUELS[item.name] then
+                    fuelChest.pushItems(fuelInputHatch, slot)
+                end
             end
+
+            if next(fuelChest.list()) == nil then
+                updateStatus("Fuel buffer empty")
+            elseif next(cyaniteOutputHatch.list()) ~= nil then
+                updateStatus("Cyanite output full")
+            else
+                updateStatus("All systems operating")
+            end
+
+            sleep(fuelSleepTime)
+        else
+            os.pullEvent("redstone")
         end
-        sleep(fuelSleepTime)
     end
 end
 
-parallel.waitForAny(overrideSwitch, maintanenceLoop, statusSystem, fuelSystem)
+local ok, err = pcall(parallel.waitForAny, overrideSwitch, maintanenceLoop, fuelSystem)
+if not ok then
+    updateStatus("ERROR!\n"..err, true)
+end
+
