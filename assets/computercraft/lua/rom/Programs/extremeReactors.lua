@@ -1,7 +1,31 @@
+
+local statusMessageIdentifier = "Main Reactor" -- this is the name that will be sent with status messages when the computer sends them
 local reactorName = "BigReactors-Reactor_1"
 local turbineName = "BigReactors-Turbine_3" -- edit the config if you know the ideal steam flow rate to skip the lengthy calibration stage
-local overrideSide = "top" -- redstone signal disables the computers modifying the reactor
-local sleepTime = 1
+local fuelChestName = "minecraft:chest_49"
+local fuelInputHatchName = "bigreactors:tileentityreactoraccessport_2"
+local cyaniteChestName = "minecraft:chest_48"
+local cyaniteOutputHatchName = "bigreactors:tileentityreactoraccessport_1"
+local overrideSide = "top" -- redstone signal disables the computers managing the reactor
+local maintenanceSleepTime = 1
+local fuelSleepTime = 120
+local statusSleetTime = 60
+
+
+-- CONFIG END
+peripheral.find("modem", function(side) rednet.open(side) end)
+
+local FUELS = {
+    ["bigreactors:ingotblutonium"] = "Bluetonium ingots",
+    ["bigreactors:blockblutonium"] = "Bluetonium blocks",
+    ["bigreactors:ingotyellorium"] = "Yellorium ingots",
+    ["bigreactors:blockyellorium"] = "Yellorium blocks",
+}
+
+local fuelChest = peripheral.wrap(fuelChestName)
+local fuelInputHatch = peripheral.wrap(fuelInputHatchName)
+local cyaniteChest = peripheral.wrap(cyaniteChestName)
+local cyaniteOutputHatch = peripheral.wrap(cyaniteOutputHatchName)
 
 local TURBINE_SPEED_TOO_EXSTREAM_THRESHOLD = 100
 local TURBINE_SPEED_SLIGHTLY_THRESHOLD = 10
@@ -222,7 +246,7 @@ local function maintanenceLoop()
             end
 
 
-            sleep(sleepTime)
+            sleep(maintenanceSleepTime)
         else
             os.pullEvent("redstone")
         end
@@ -247,4 +271,23 @@ local function overrideSwitch()
     end
 end
 
-parallel.waitForAny(overrideSwitch, maintanenceLoop)
+local lastState
+local function statusSystem()
+    while true do
+
+    end
+end
+
+local function fuelSystem()
+    while true do
+        cyaniteOutputHatchName.pushItems(cyaniteChestName, 1)
+        for slot, item in pairs(fuelChest.list()) do
+            if FUELS[item.name] then
+                fuelChest.pushItems(fuelInputHatch, slot)
+            end
+        end
+        sleep(fuelSleepTime)
+    end
+end
+
+parallel.waitForAny(overrideSwitch, maintanenceLoop, statusSystem, fuelSystem)
