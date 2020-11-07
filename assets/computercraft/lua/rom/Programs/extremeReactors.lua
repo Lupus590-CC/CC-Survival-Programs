@@ -11,10 +11,10 @@ local maintenanceSleepTime = 1
 local fuelSleepTime = 120
 local statusSleetTime = 60
 local reprocesserSleepTime = 120
-local reprocesserInputSuckFunc = turtle.suck
-local reprocesserOutputDropFunc = turtle.dropUp
-local reprocesserCompactSuckFunc = turtle.suckDown
-local reprocesserCompactDropFunc = turtle.dropDown
+local reprocesserInputSuckFunc = turtle and turtle.suck
+local reprocesserOutputDropFunc = turtle and turtle.dropUp
+local reprocesserCompactSuckFunc = turtle and turtle.suckDown
+local reprocesserCompactDropFunc = turtle and turtle.dropDown
 local reprocesserCompactChestName = "bottom"
 local reprocesserInputChestName = "front"
 
@@ -33,7 +33,11 @@ if pocket then
     while true do
         local _, message, protocol = rednet.receive(REACTOR_STATUS_PROTOCOL, 10000000)
         if type(message) == "table" then
-            print(message.reactorName..":", message.status)
+            if message.usePrintError then
+                printError(message.reactorName..": "..message.status)
+            else
+                print(message.reactorName..": "..message.status)
+            end
         end
     end
 
@@ -237,7 +241,8 @@ else
     local lastStatus
     local function updateStatus(newStatus, usePrintError)
         if lastStatus ~= newStatus then
-            rednet.broadcast({reactorName = statusMessageIdentifier, status = newStatus},REACTOR_STATUS_PROTOCOL)
+            lastStatus = newStatus
+            rednet.broadcast({reactorName = statusMessageIdentifier, status = newStatus, usePrintError = usePrintError},REACTOR_STATUS_PROTOCOL)
             if usePrintError then
                 printError(newStatus)
             else
@@ -362,6 +367,20 @@ else
         reactor.setAllControlRodLevels(rodLevelToSet)
     end
 
+    local lastpowerAmount
+    local function reportPowerGenerated(device)
+        local currentpower = device.getEnergyStored()
+        if lastpowerAmount then
+            local deltaPower = currentpower-lastpowerAmount -- positive means increasing
+            if deltaPower > 0 then
+                updateStatus("Gaining power")
+            else
+                updateStatus("WARNING! Power demand excedes generation")
+            end
+        end
+        lastpowerAmount = currentpower
+    end
+
     local function maintanenceLoop()
         while true do
             if not override then
@@ -372,10 +391,13 @@ else
                     turbine.setActive(true)
                     turbine.setVentAll()
                     activelyCooled()
+                    
+                    reportPowerGenerated(turbine)
                 else
                     passivelyCooled()
+
+                    reportPowerGenerated(reactor)
                 end
-                -- TODO: warn status system when reactor is not able to satify demand
 
 
                 sleep(maintenanceSleepTime)
