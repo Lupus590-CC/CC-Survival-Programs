@@ -26,20 +26,45 @@ local REACTOR_STATUS_PROTOCOL = "Lupus590:extreamReactors/status"
 if pocket then
     -- status listener
     
-    -- TODO: print the time that messages were recived
     term.setCursorPos(1,1)
     term.clear()
-    term.setCursorPos(1,1)
-    while true do
-        local _, message, protocol = rednet.receive(REACTOR_STATUS_PROTOCOL, 10000000)
-        if type(message) == "table" then
-            if message.usePrintError then
-                printError(message.reactorName..": "..message.status)
-            else
-                print(message.reactorName..": "..message.status)
+    term.setCursorPos(1,2)
+
+    local function drawClockBar()
+        local x, y = term.getCursorPos()
+        term.setCursorPos(1,1)
+        term.clearLine()
+        term.setCursorPos(1,1)
+        term.write(textutils.formatTime(os.time("local")))
+        term.setCursorPos(x, y)
+    end
+
+    local function clockPrinter()
+        while true do
+            drawClockBar()
+            sleep(15)
+        end
+    end
+
+    local function formatMessage(message)
+        return textutils.formatTime(os.time("local"))..": "..message.reactorName..": "..message.status
+    end
+
+    local function messagePrinter()
+        while true do
+            local _, message, protocol = rednet.receive(REACTOR_STATUS_PROTOCOL, 10000000)
+            if type(message) == "table" then
+                if message.usePrintError then
+                    printError(formatMessage(message))
+                else
+                    print(formatMessage(message))
+                end
+                drawClockBar()
             end
         end
     end
+
+   parallel.waitForAny(messagePrinter, clockPrinter)
 
 elseif turtle then
     -- cyanite reprocessor
