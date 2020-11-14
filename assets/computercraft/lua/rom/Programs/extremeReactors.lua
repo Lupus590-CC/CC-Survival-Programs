@@ -23,7 +23,11 @@ local reprocesserInputChestName = "front"
 peripheral.find("modem", function(side) rednet.open(side) end)
 local REACTOR_STATUS_PROTOCOL = "Lupus590:extreamReactors/status"
 
-if pocket then
+local function isPlethoraNeuralInterface() -- -- plethora neural interface? -- TODO: term sizes can change now, need to find a better way to do this. peripheral.find("neuralInterface") has been suggested but it doen't work if the neural interface has no other modules in it
+    return peripheral.find("neuralInterface") and true or select(2, term.getSize()) == 13
+end
+
+if pocket or isPlethoraNeuralInterface() then
     -- status listener
     
     term.setCursorPos(1,1)
