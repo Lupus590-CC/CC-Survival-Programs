@@ -56,7 +56,6 @@ local function moveFuelToChests()
     local limit = splitStacksToTarget(item.count, #refuelChests)
     if limit < 1 then return end
     for _, refuelChest in ipairs(refuelChests) do
-        compactSlots(compactorOutputChest) -- TODO: optimise
         compactorOutputChest.pushItems(refuelChest.PERIPHERAL_NAME, 1, limit)
     end
 end
