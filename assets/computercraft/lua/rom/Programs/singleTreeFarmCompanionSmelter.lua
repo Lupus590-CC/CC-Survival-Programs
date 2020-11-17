@@ -50,13 +50,16 @@ local function compactSlots(chest)
 end
 
 local function moveFuelToChests()
-    compactSlots(compactorOutputChest) -- TODO: optimise
-    local item = compactorOutputChest.getItemMeta(1)
-    if not item then return end
-    local limit = splitStacksToTarget(item.count, #refuelChests)
-    if limit < 1 then return end
-    for _, refuelChest in ipairs(refuelChests) do
-        compactorOutputChest.pushItems(refuelChest.PERIPHERAL_NAME, 1, limit)
+    compactSlots(compactorOutputChest)
+    for slot, item in pairs(compactorOutputChest.list()) do
+        if item then
+            local limit = splitStacksToTarget(item.count, #refuelChests)
+            if limit > 0 then
+                for _, refuelChest in ipairs(refuelChests) do
+                    compactorOutputChest.pushItems(refuelChest.PERIPHERAL_NAME, slot, limit)
+                end
+            end
+        end
     end
 end
 
