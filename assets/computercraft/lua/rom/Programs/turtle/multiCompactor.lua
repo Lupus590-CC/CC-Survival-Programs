@@ -33,8 +33,17 @@ term.redirect(win) -- really we should capture the old term but everything seems
 local pageSize = h-3
 local rowWin = window.create(win, 1,2, w, pageSize)
 
-local configFileName = fs.isReadOnly(fs.getDir(shell.getRunningProgram())) and fs.getName(shell.getRunningProgram())..".config" or shell.getRunningProgram()..".config" -- TODO: avoid startup folder
-local recipeFileName = fs.isReadOnly(fs.getDir(shell.getRunningProgram())) and fs.getName(shell.getRunningProgram())..".recipes" or shell.getRunningProgram()..".recipes" -- TODO: avoid startup folder
+local function getConfigLocation(fileName) -- tries to place config next to program, avoiding read only locations and the startup directory and going for root instead
+  local programDir = fs.getDir(shell.getRunningProgram())
+  if fs.isReadOnly(programDir) or programDir:lower() == "startup" then
+      return fileName
+  else
+      return fs.combine(fs.getDir(shell.getRunningProgram()), fileName)
+  end
+end
+
+local configFileName = getConfigLocation(fs.getName(shell.getRunningProgram())..".config")
+local recipeFileName = getConfigLocation(fs.getName(shell.getRunningProgram())..".recipes")
 
 local recipes
 local config

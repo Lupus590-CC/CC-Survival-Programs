@@ -41,14 +41,6 @@ do
     -- Converted to be Require compatible by Lupus590 and released under the same MIT license.
     -- Look for REQUIRE_COMPAT in comments, the connected multi line comments are removed original stuff with the replacement under that.
 
-    -- TODO: copy to hive (I think I fixed the require compatablility)
-
-    -- TODO: reference frames? may need a full rewrite
-    -- how to track reference frames?
-    -- how to access reference frames?
-    -- push/pop interface for creating and removing reference frames
-    -- don't forget to use argValidationUtils
-
     -- REQUIRE_COMPAT
 
     --Copy the default turtle directory

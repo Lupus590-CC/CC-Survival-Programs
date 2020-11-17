@@ -23,7 +23,7 @@ local reprocesserInputChestName = "front"
 peripheral.find("modem", function(side) rednet.open(side) end)
 local REACTOR_STATUS_PROTOCOL = "Lupus590:extreamReactors/status"
 
-local function isPlethoraNeuralInterface() -- -- plethora neural interface? -- TODO: term sizes can change now, need to find a better way to do this. peripheral.find("neuralInterface") has been suggested but it doen't work if the neural interface has no other modules in it
+local function isPlethoraNeuralInterface()
     return peripheral.find("neuralInterface") and true or select(2, term.getSize()) == 13
 end
 
@@ -187,7 +187,6 @@ else
     local turbine = reactor.isActivelyCooled() and (peripheral.wrap(turbineName) or error("couldn't locate turbine with name/side "..turbineName, 0)) or nil
     local override = false
 
-    local configFileName = fs.isReadOnly(fs.getDir(shell.getRunningProgram())) and fs.getName(shell.getRunningProgram())..".config" or shell.getRunningProgram()..".config" -- TODO: avoid startup folder
     local config
     do
         --
@@ -255,12 +254,25 @@ else
             return pcall(unsafeSave)
         end
 
+        local function getConfigLocation(fileName) -- tries to place config next to program, avoiding read only locations and the startup directory and going for root instead
+            local programDir = fs.getDir(shell.getRunningProgram())
+            if fs.isReadOnly(programDir) or programDir:lower() == "startup" then
+                return fileName
+            else
+                return fs.combine(fs.getDir(shell.getRunningProgram()), fileName)
+            end
+        end
+
 
         config = {
             load = load,
             save = save,
+            getConfigLocation = getConfigLocation
         }
     end
+
+    local configFileName = config.getConfigLocation(fs.getName(shell.getRunningProgram()..".config"))
+
     local configOk, configData = config.load(configFileName, {idealFlowRate = turbine and turbine.getFluidFlowRateMaxMax()/2})
     if not configOk then
         error("Error loading config: "..configData, 0)
