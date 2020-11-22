@@ -1,16 +1,21 @@
-
-local statusMessageIdentifier = "Main Reactor" -- this is the name that will be sent with status messages when the computer sends them
+-- REQUIRED CONFIG
 local reactorName = "BigReactors-Reactor_1"
-local turbineName = "BigReactors-Turbine_3" -- edit the config if you know the ideal steam flow rate to skip the lengthy calibration stage
-local fuelChestName = "minecraft:chest_49"
-local fuelInputHatchName = "bigreactors:tileentityreactoraccessport_2"
-local cyaniteChestName = "minecraft:chest_48"
-local cyaniteOutputHatchName = "bigreactors:tileentityreactoraccessport_1"
 local overrideSide = "top" -- redstone signal disables the computers managing the reactor
 local maintenanceSleepTime = 1
 local fuelSleepTime = 120
 local statusSleetTime = 60
 local reprocesserSleepTime = 120
+local statusMessageIdentifier = "Main Reactor" -- this is the name that will be sent with status messages when the computer sends them
+
+-- OPTIONAL CONFIG
+-- If you don't have these peripherals then you can ignore the config entry, the computer will try to continue without valid values
+local turbineName = "BigReactors-Turbine_3" -- edit the config if you know the ideal steam flow rate to skip the lengthy calibration stage
+local fuelChestName = "minecraft:chest_49"
+local fuelInputHatchName = "bigreactors:tileentityreactoraccessport_2"
+local cyaniteChestName = "minecraft:chest_48"
+local cyaniteOutputHatchName = "bigreactors:tileentityreactoraccessport_1"
+
+-- Turtle Reprocessor side config
 local reprocesserInputSuckFunc = turtle and turtle.suck
 local reprocesserOutputDropFunc = turtle and turtle.dropUp
 local reprocesserCompactSuckFunc = turtle and turtle.suckDown
