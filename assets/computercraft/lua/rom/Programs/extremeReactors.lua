@@ -468,6 +468,10 @@ else
     end
 
     local function fuelSystem()
+        if (not cyaniteOutputHatch) or (not fuelInputHatch) or (not fuelChest) or (not cyaniteChest) then
+            updateStatus("WARNING! Fuel system offline, chests or hatches not found.")
+            os.pullEvent("Lupus590:FakeEvent")
+        end
         while true do
             if not override then
                 cyaniteOutputHatch.pushItems(cyaniteChestName, 1)
