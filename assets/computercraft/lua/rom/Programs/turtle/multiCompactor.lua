@@ -27,11 +27,6 @@ local theme = {
 
 -- TODO: debug recipe duplication
 
-local w,h = term.getSize()
-local win = window.create(term.current(), 1, 1, w, h)
-term.redirect(win) -- really we should capture the old term but everything seems fine when we don't restore it and we don't need it so we just let it disappear into the aether
-local pageSize = h-3
-local rowWin = window.create(win, 1,2, w, pageSize)
 
 local function getConfigLocation(fileName) -- tries to place config next to program, avoiding read only locations and the startup directory and going for root instead
   local programDir = fs.getDir(shell.getRunningProgram())
@@ -42,16 +37,18 @@ local function getConfigLocation(fileName) -- tries to place config next to prog
   end
 end
 
-local configFileName = getConfigLocation(fs.getName(shell.getRunningProgram())..".config")
-local recipeFileName = getConfigLocation(fs.getName(shell.getRunningProgram())..".recipes")
+local programName = arg[0] or fs.getName(shell.getRunningProgram())
+
+local configFileName = getConfigLocation(programName..".config")
+local recipeFileName = getConfigLocation(programName..".recipes")
 
 local recipes
 local config
 
 local function loadConfig()
-  local function unsafeload()
+  local function unsafeLoad()
     local file = fs.open(configFileName, "r")
-    config = textutils.unserialize(file.readAll())
+    config = textutils.unserialise(file.readAll())
     file.close()
   end
 
@@ -59,7 +56,7 @@ local function loadConfig()
     return false, "not a file"
   end
 
-  return pcall(unsafeload)
+  return pcall(unsafeLoad)
 end
 
 local function createConfig()
@@ -122,6 +119,12 @@ if (not block) or block.name ~=  "minecraft:chest" then
   error("Could not find turtle neighbour chest, side checked"
   ..turtleChest.POSITION)
 end
+
+local w, h = term.getSize()
+local win = window.create(term.current(), 1, 1, w, h)
+local pageSize = h-3
+local rowWin = window.create(win, 1,2, w, pageSize)
+term.redirect(win) -- really we should capture the old term but everything seems fine when we don't restore it and we don't need it so we just let it disappear into the aether
 
 local threeXThreeSlots = {1,2,3,5,6,7,9,10,11}
 local twoXTwoSlots = {1,2,5,6}
