@@ -9,7 +9,7 @@ local statusMessageIdentifier = "Main Reactor" -- this is the name that will be 
 
 -- OPTIONAL CONFIG
 -- If you don't have these peripherals then you can ignore the config entry, the computer will try to continue without valid values
-local turbineName = "BigReactors-Turbine_3" -- edit the config if you know the ideal steam flow rate to skip the lengthy calibration stage
+local turbineName = "BigReactors-Turbine_6" -- edit the config if you know the ideal steam flow rate to skip the lengthy calibration stage
 local fuelChestName = "minecraft:chest_49"
 local fuelInputHatchName = "bigreactors:tileentityreactoraccessport_2"
 local cyaniteChestName = "minecraft:chest_48"
@@ -27,6 +27,7 @@ local reprocesserInputChestName = "front"
 -- CONFIG END
 peripheral.find("modem", function(side) rednet.open(side) end)
 local REACTOR_STATUS_PROTOCOL = "Lupus590:extreamReactors/status"
+local statusMessageBackgroundToggle = true
 
 local function isPlethoraNeuralInterface()
     return peripheral.find("neuralInterface") and true or select(2, term.getSize()) == 13
@@ -42,10 +43,13 @@ if pocket or isPlethoraNeuralInterface() then
     local function drawClockBar()
         local x, y = term.getCursorPos()
         term.setCursorPos(1,1)
+        term.setBackgroundColour(colours.white)
+        term.setTextColour(colours.black)
         term.clearLine()
         term.setCursorPos(1,1)
         term.write(textutils.formatTime(os.time("local")))
         term.setCursorPos(x, y)
+        term.setTextColour(colours.white)
     end
 
     local function clockPrinter()
@@ -68,7 +72,13 @@ if pocket or isPlethoraNeuralInterface() then
                 else
                     print(formatMessage(message))
                 end
-                drawClockBar()
+                drawClockBar()                
+                if statusMessageBackgroundToggle then
+                    term.setBackgroundColour(colours.black)
+                else
+                    term.setBackgroundColour(colours.grey)
+                end
+                statusMessageBackgroundToggle = not statusMessageBackgroundToggle
             end
         end
     end
@@ -294,6 +304,12 @@ else
             else
                 print(newStatus)
             end
+            if statusMessageBackgroundToggle then
+                term.setBackgroundColour(colours.black)
+            else
+                term.setBackgroundColour(colours.grey)
+            end
+            statusMessageBackgroundToggle = not statusMessageBackgroundToggle
         end
     end
 
