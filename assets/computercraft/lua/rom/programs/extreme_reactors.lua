@@ -442,7 +442,7 @@ else
                     if reactor.getCoolantAmount() < reactor.getCoolantAmountMax() then
                         updateStatus("Losing power, reactor needs more water")
                     else
-                        updateStatus("Losing power, turbine needs more steam - reactor is not keeping up")
+                        updateStatus("Losing power, turbine needs more steam - reactor might not be keeping up")
                     end
                 elseif (deltaPower > 0 and currentPower > 0) or (turbine.getInductorEngaged() == false and turbine.getFluidFlowRate() == 0) then
                     updateStatus("Stable power generation")
