@@ -10,6 +10,7 @@ local statusMessageIdentifier = "Main Reactor" -- this is the name that will be 
 -- OPTIONAL CONFIG
 -- If you don't have these peripherals then you can ignore the config entry, the computer will try to continue without valid values
 local turbineName = "BigReactors-Turbine_6" -- edit the config if you know the ideal steam flow rate to skip the lengthy calibration stage
+local turbineTargetEnergyPercentage = 95 -- the turbine can be slow to react, setting this higher means that you have a bigger buffer but are more likly to waste power. However, if it's too low you have the risk of running out of power.
 local fuelChestName = "minecraft:chest_49"
 local fuelInputHatchName = "bigreactors:tileentityreactoraccessport_2"
 local cyaniteChestName = "minecraft:chest_48"
@@ -375,7 +376,7 @@ else
             turbine.setFluidFlowRateMax(turbine.getFluidFlowRateMaxMax())
             turbine.setInductorEngaged(false)
         else
-            if energyFilledPercentage > 75 then
+            if energyFilledPercentage > turbineTargetEnergyPercentage then
                 turbine.setInductorEngaged(false)
                 if isTurbineABitTooSlow() then
                     outputMode("Topping up speed.")
@@ -429,18 +430,37 @@ else
         reactor.setAllControlRodLevels(rodLevelToSet)
     end
 
-    local lastpowerAmount
+    local lastPowerAmount
     local function reportPowerGenerated(device)
-        local currentpower = device.getEnergyStored()
-        if lastpowerAmount then
-            local deltaPower = currentpower-lastpowerAmount -- positive means increasing
-            if deltaPower > 0 then
-                updateStatus("Gaining power")
+        local currentPower = device.getEnergyStored()
+        if lastPowerAmount then
+            local deltaPower = currentPower-lastPowerAmount -- positive means increasing
+            if reactor.isActivelyCooled() then
+                if turbine.getFluidFlowRate() < turbine.getFluidFlowRateMax() then
+                    if reactor.getCoolantAmount() < reactor.getCoolantAmountMax()then
+                        updateStatus("Losing power, reactor needs more water")
+                    else
+                        updateStatus("Losing power, turbine needs more steam - reactor is not keeping up")
+                    end
+                elseif deltaPower > 0 and currentPower > 0 then
+                    updateStatus("Stable power generaton")
+                elseif turbine.getActive() == false or turbine.getInductorEngaged() == false then
+                    updateStatus("losing power, turbine is spinning up")
+                else
+                    updateStatus("WARNING! Power demand excedes max generation")
+                end
             else
-                updateStatus("WARNING! Power demand excedes generation")
+                if deltaPower > 0 and currentPower > 0 then
+                    updateStatus("Stable power generaton")
+                elseif reactor.getControlRodLevel(1) > 0 then
+                    updateStatus("Losing power, adjusting control rods")
+                else
+                    updateStatus("WARNING! Power demand excedes max generation")
+                end
             end
+            
         end
-        lastpowerAmount = currentpower
+        lastPowerAmount = currentPower
     end
 
     local function maintanenceLoop()
@@ -451,7 +471,7 @@ else
                 if reactor.isActivelyCooled() then
                     if not turbine then error("turbine not set up, did you change the multiblock?", 0) end
                     turbine.setActive(true)
-                    turbine.setVentAll()
+                    turbine.setVentOverflow()
                     activelyCooled()
                     
                     reportPowerGenerated(turbine)
