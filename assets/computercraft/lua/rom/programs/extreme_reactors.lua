@@ -443,7 +443,7 @@ else
                         updateStatus("Losing power, turbine needs more steam - reactor is not keeping up")
                     end
                 elseif deltaPower > 0 and currentPower > 0 then
-                    updateStatus("Stable power generaton")
+                    updateStatus("Stable power generation")
                 elseif turbine.getActive() == false or turbine.getInductorEngaged() == false then
                     updateStatus("losing power, turbine is spinning up")
                 else
@@ -451,7 +451,7 @@ else
                 end
             else
                 if deltaPower > 0 and currentPower > 0 then
-                    updateStatus("Stable power generaton")
+                    updateStatus("Stable power generation")
                 elseif reactor.getControlRodLevel(1) > 0 then
                     updateStatus("Losing power, adjusting control rods")
                 else
