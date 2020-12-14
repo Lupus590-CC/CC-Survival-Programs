@@ -6,6 +6,8 @@ local fuel = { ["minecraft:coal"] = true, ["minecraft:lava_bucket"] = true, ["ch
 local maxWaitTime = 120
 local targetFuelLevel = 500
 
+-- TODO: offer to delete things on error when the only want to continue is to delete .LAMA etc.
+
 local leaves = "minecraft:leaves"
 local logs = "minecraft:log"
 local saplings = "minecraft:sapling"
@@ -775,7 +777,7 @@ local function tryForwards()
             turtle.dig()
         elseif blockData and blockData.name == logs then
             if logMode then
-                error("Even LAMA is lost, delete the .lama folder.", 0)
+                error("Even LAMA is lost, delete the .lama folder and reset the turtle.", 0)
             end
             logMode = true
             turtle.turnRight()
@@ -788,7 +790,7 @@ local function tryForwards()
             turtle.turnRight()
             logMode = false
         elseif blockData then
-            error("Unknown obstruction. LAMA could be lost, delete the .lama folder if you belive that it is.", 0)
+            error("Unknown obstruction. LAMA could be lost, delete the .lama folder  and reset the turtle if you belive that it is.", 0)
         end
     end
 end
@@ -852,15 +854,15 @@ local function clearLeaves()
                 if blockData and blockData.name == leaves then
                     turtle.digDown()
                 elseif blockData and blockData.name == logs then
-                    error("Even LAMA is lost, delete the .lama folder.", 0)
+                    error("Even LAMA is lost, delete the .lama folder and reset the turtle.", 0)
                 elseif blockData then
-                    error("Unknown obstruction. LAMA could be lost, delete the .lama folder if you belive that it is.", 0)
+                    error("Unknown obstruction. LAMA could be lost, delete the .lama folder and reset the turtle if you belive that it is.", 0)
                 end
             end
             x, y, z, f = lama.getPosition()
         end
         if y ~= 0 then
-            error("Even LAMA is lost, delete the .lama folder.", 0)
+            error("Even LAMA is lost, delete the .lama folder and reset the turtle.", 0)
         end
 
         x, y, z, f = lama.getPosition()
