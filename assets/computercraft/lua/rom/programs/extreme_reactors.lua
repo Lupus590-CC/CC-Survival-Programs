@@ -295,10 +295,12 @@ else
     end
     local idealFlowRate = configData.idealFlowRate
 
+    local lastStatusTime = -statusSleetTime
     local lastStatus
     local function updateStatus(newStatus, usePrintError)
-        if lastStatus ~= newStatus then
+        if lastStatus ~= newStatus or lastStatusTime + statusSleetTime < os.clock() then
             lastStatus = newStatus
+            lastStatusTime = os.clock()
             rednet.broadcast({reactorName = statusMessageIdentifier, status = newStatus, usePrintError = usePrintError},REACTOR_STATUS_PROTOCOL)
             if usePrintError then
                 printError(newStatus)
@@ -437,23 +439,21 @@ else
             local deltaPower = currentPower-lastPowerAmount -- positive means increasing
             if reactor.isActivelyCooled() then
                 if turbine.getFluidFlowRate() < turbine.getFluidFlowRateMax() then
-                    if reactor.getCoolantAmount() < reactor.getCoolantAmountMax()then
+                    if reactor.getCoolantAmount() < reactor.getCoolantAmountMax() then
                         updateStatus("Losing power, reactor needs more water")
                     else
                         updateStatus("Losing power, turbine needs more steam - reactor is not keeping up")
                     end
-                elseif deltaPower > 0 and currentPower > 0 then
+                elseif (deltaPower > 0 and currentPower > 0) or (turbine.getInductorEngaged() == false and turbine.getFluidFlowRate() == 0) then
                     updateStatus("Stable power generation")
-                elseif turbine.getActive() == false or turbine.getInductorEngaged() == false then
+                elseif turbine.getInductorEngaged() == false and turbine.getFluidFlowRate() > 0 then
                     updateStatus("Losing power, turbine is spinning up")
                 else
                     updateStatus("WARNING! Power demand exceedes max generation")
                 end
             else
-                if deltaPower > 0 and currentPower > 0 then
+                if (deltaPower > 0 and currentPower > 0) or reactor.getControlRodLevel(1) > 0 then
                     updateStatus("Stable power generation")
-                elseif reactor.getControlRodLevel(1) > 0 then
-                    updateStatus("Losing power, adjusting control rods")
                 else
                     updateStatus("WARNING! Power demand excedes max generation")
                 end
