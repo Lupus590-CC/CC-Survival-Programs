@@ -445,7 +445,7 @@ else
                 elseif deltaPower > 0 and currentPower > 0 then
                     updateStatus("Stable power generation")
                 elseif turbine.getActive() == false or turbine.getInductorEngaged() == false then
-                    updateStatus("losing power, turbine is spinning up")
+                    updateStatus("Losing power, turbine is spinning up")
                 else
                     updateStatus("WARNING! Power demand excedes max generation")
                 end
