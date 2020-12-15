@@ -31,6 +31,9 @@ local REACTOR_STATUS_PROTOCOL = "Lupus590:extreamReactors/status"
 local statusMessageBackgroundToggle = true
 
 local function isPlethoraNeuralInterface()
+    if turtle or pocket or commands then
+        return false
+    end
     return peripheral.find("neuralInterface") and true or select(2, term.getSize()) == 13
 end
 
