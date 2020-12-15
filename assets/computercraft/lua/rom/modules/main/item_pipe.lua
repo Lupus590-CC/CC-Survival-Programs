@@ -1,14 +1,17 @@
 -- TODOL arg checking and code cleanup
+local expect = require("cc.expect").expect
 
 local function addDestination(pipe, destinationinventory)
     local destination = {_backingTable = {name = destinationinventory}}
 
     function destination.setFilter(func)
+      expect(1, func, "function")
       destination._backingTable.filter = func
       return destination
     end
 
     function destination.setPriority(priority)
+      expect(1, priority, "number", "nil")
       destination._backingTable.priority = priority
       return destination
     end
@@ -67,18 +70,22 @@ local function buildPipe(pipe)
 end
 
 local function newPipe(sourceInventory)
+  expect(1, sourceInventory, "string")
   local pipe = {_backingTable = {sourceName = sourceInventory, destinations = {}}}
 
   function pipe.addDestination(destinationinventory)
+    expect(1, destinationinventory, "string")
     return addDestination(pipe, destinationinventory)
   end
 
   function pipe.removeDestination(destinationinventory)
+    expect(1, destinationinventory, "string")
     pipe._backingTable.destinations[destinationinventory] = nil
     return pipe
   end
 
   function pipe.setFilter(func)
+    expect(1, func, "function", "nil")
     pipe._backingTable.filter = func
     return pipe
   end
