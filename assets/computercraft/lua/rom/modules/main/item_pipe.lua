@@ -1,3 +1,4 @@
+-- TODOL arg checking and code cleanup
 
 local function addDestination(pipe, destinationinventory)
     local destination = {_backingTable = {name = destinationinventory}}
