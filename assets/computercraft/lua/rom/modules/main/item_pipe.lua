@@ -1,4 +1,4 @@
--- TODOL arg checking and code cleanup
+-- TODOL better arg checking (valid peripherals etc.) and code cleanup
 local expect = require("cc.expect").expect
 
 local function addDestination(pipe, destinationinventory)
