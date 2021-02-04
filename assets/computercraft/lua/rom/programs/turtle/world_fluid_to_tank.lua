@@ -1,10 +1,10 @@
 settings.define("lupus590.world_fluid_to_tank.fluid_side", {
-    description = "The side of the fluid source in the world. [ up | down | front ]",
+    description = "The side of the fluid source in the world. [ top | bottom | front ]",
     type = "string",
 })
 
 settings.define("lupus590.world_fluid_to_tank.fluid_loader_side", {
-    description = "The side of the fluid loader. [ up | down | front ]",
+    description = "The side of the fluid loader. [ top | bottom | front ]",
     type = "string",
 })
 
@@ -17,29 +17,29 @@ local fluidLoaderSide = settings.get("lupus590.world_fluid_to_tank.fluid_loader_
 fluidSide = fluidSide and fluidSide:lower()
 fluidLoaderSide = fluidLoaderSide and fluidLoaderSide:lower()
 
-if (not fluidSide) or (fluidSide ~= "up" and fluidSide ~= "down" and fluidSide ~= "front") then
+if (not fluidSide) or (fluidSide ~= "top" and fluidSide ~= "bottom" and fluidSide ~= "front") then
     error("Fluid side is not set, use the set command and set lupus590.world_fluid_to_tank.fluid_side to a valid side.", 0)
 end
 
-if (not fluidLoaderSide) or (fluidLoaderSide ~= "up" and fluidLoaderSide ~= "down" and fluidLoaderSide ~= "front") then
+if (not fluidLoaderSide) or (fluidLoaderSide ~= "top" and fluidLoaderSide ~= "bottom" and fluidLoaderSide ~= "front") then
     error("Fluid loader side is not set, use the set command and set lupus590.world_fluid_to_tank.fluid_loader_side to a valid side.", 0)
 end
 
 local suck = {
-    up = turtle.suckUp,
-    down = turtle.suckDown,
+    top = turtle.suckUp,
+    bottom = turtle.suckDown,
     front = turtle.suck,
 }
 
 local drop = {
-    up = turtle.dropUp,
-    down = turtle.dropDown,
+    top = turtle.dropUp,
+    bottom = turtle.dropDown,
     front = turtle.drop,
 }
 
 local place = {
-    up = turtle.placeUp,
-    down = turtle.placeDown,
+    top = turtle.placeUp,
+    bottom = turtle.placeDown,
     front = turtle.place,
 }
 
