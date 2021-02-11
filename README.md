@@ -1,4 +1,4 @@
-Add this to the top of your file to automatically fetch any modules that you are missing automatically when you require them.
+Add this to the top of your file to automatically fetch any modules that you are missing when you require them.
 Alternativly, put it into its own file and require that file when you would put this code at the top.
 
 This snippet is based on the one from [Metis](https://metis.madefor.cc/), but it's very heavily modified at this point.
@@ -34,15 +34,16 @@ local downloadErrors = {n=0}
 for _, path in ipairs(paths) do
     local localPath = localPathRoot .. path .. name
     if not fs.exists(localPath) then
-        local url = rootUrl .. path .. "lupus590/" .. name
-        local request, err = http.get(url)
-        if request then
-            io.open(localPath, "w"):write(request.readAll()):close()
-            request.close()
-        else
-            downloadErrors.n = downloadErrors.n + 1
-            downloadErrors[downloadErrors.n] = "Cannot download " .. url .. ": " .. err
-        end
+
+    local url = rootUrl .. path .. "lupus590/" .. name
+    local request, err = http.get(url)
+    if request then
+        io.open(localPath, "w"):write(request.readAll()):close()
+        request.close()
+    else
+        downloadErrors.n = downloadErrors.n + 1
+        downloadErrors[downloadErrors.n] = "Cannot download " .. url .. ": " .. err
+    end
     end
 
     if fs.exists(localPath) then
@@ -56,5 +57,4 @@ for _, path in ipairs(paths) do
 end
 return nil, table.concat(downloadErrors, "\n")
 end
-
 ```
