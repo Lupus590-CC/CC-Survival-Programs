@@ -1,4 +1,4 @@
-local itemPipe = require("item_pipe")
+local itemPipe = require("lupus590.item_pipe")
 
 local pipe = itemPipe.newPipe("minecraft:chest_57") -- this is the source inventory
 

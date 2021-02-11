@@ -1,4 +1,4 @@
-local fluidPipe = require("fluid_pipe")
+local fluidPipe = require("lupus590.fluid_pipe")
 
 local pipe = fluidPipe.newPipe("cookingforblockheads:sink_0") -- this is the source inventory
 
