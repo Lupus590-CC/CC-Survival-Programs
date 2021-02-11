@@ -28,16 +28,15 @@ local downloadErrors = {n=0}
 for _, path in ipairs(paths) do
     local localPath = localPathRoot .. path .. name
     if not fs.exists(localPath) then
-
-    local url = rootUrl .. path .. "lupus590/" .. name
-    local request, err = http.get(url)
-    if request then
-        io.open(localPath, "w"):write(request.readAll()):close()
-        request.close()
-    else
-        downloadErrors.n = downloadErrors.n + 1
-        downloadErrors[downloadErrors.n] = "Cannot download " .. url .. ": " .. err
-    end
+        local url = rootUrl .. path .. "lupus590/" .. name
+        local request, err = http.get(url)
+        if request then
+            io.open(localPath, "w"):write(request.readAll()):close()
+            request.close()
+        else
+            downloadErrors.n = downloadErrors.n + 1
+            downloadErrors[downloadErrors.n] = "Cannot download " .. url .. ": " .. err
+        end
     end
 
     if fs.exists(localPath) then
