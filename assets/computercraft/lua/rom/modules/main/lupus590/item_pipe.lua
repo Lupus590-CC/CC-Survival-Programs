@@ -1,4 +1,5 @@
--- TODOL better arg checking (valid peripherals etc.) and code cleanup
+-- TODO: better arg checking (valid peripherals etc.) and code cleanup
+-- TODO: invert flow option
 local expect = require("cc.expect").expect
 
 local function addDestination(pipe, destinationinventory)

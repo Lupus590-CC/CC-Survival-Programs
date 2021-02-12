@@ -67,6 +67,7 @@ local inputChest = peripheral.wrap(inputChestSide)
 while true do
   local sleepTime = 0
   turtle.select(16)
+  -- TODO: fix multi output
   while turtle.getItemCount(16) > 0 do
     if not dropFunc() then
       local _, y = term.getCursorPos()

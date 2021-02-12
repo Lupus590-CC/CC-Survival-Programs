@@ -1,7 +1,7 @@
 -- WARNING: this program will not break branches, make sure that your tree will
 -- not make branches. you can achieve this by puting your tree in a room with
--- an appropiatly highted roof (6 blocks high I believe) or by using a tree type which doesn't make
--- branches
+-- an appropiatly highted roof (6 blocks high I believe) or by using a tree 
+-- type which doesn't make branches
 local fuel = { ["minecraft:coal"] = true, ["minecraft:lava_bucket"] = true, ["chisel:block_charcoal"] = true, ["chisel:block_charcoal1"] = true, ["chisel:block_charcoal2"] = true }
 local maxWaitTime = 120
 local targetFuelLevel = 500
@@ -15,7 +15,7 @@ local chest = "minecraft:chest"
 local trappedChest = "minecraft:trapped_chest"
 local scanner = peripheral.find("plethora:scanner")
 
-local lama = {}
+local lama = {} -- TODO: extract to module
 local lamaInit = false
 do
     --[[ The MIT License (MIT)
@@ -296,7 +296,7 @@ if lamaInit then
     lama.setPosition(0, 0, 0, "north") -- we don't care if this is true globally, we just want to be able to find it again
 end
 
-local movementStack = {}
+local movementStack = {} -- TODO: extract to module
 do
     local fileLocation = ".movementStack"
     local stack
@@ -387,6 +387,7 @@ do
 end
 
 local veinMine -- TODO: smartly mine all the leaves - traveling salesman problem algorithm with plethora block scanner
+-- TODO: extract to module?
 do
     local function isDesireable()
         local ok, item = turtle.inspect()
