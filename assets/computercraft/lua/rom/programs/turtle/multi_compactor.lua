@@ -1,4 +1,4 @@
-local theme = {
+local theme = { -- TODO: use config module for this? or settings? or just let them edit here?
   header = {
     fg = colours.black,
     bg = colours.grey,
@@ -25,7 +25,54 @@ local theme = {
   },
 }
 
--- TODO: debug recipe duplication
+settings.define("lupus590.multi_compactor.output_chest_name", {
+  description = "The network address of the inventory to output into. (E.G. minecraft:chest_0)",
+  type = "string",
+})
+
+settings.define("lupus590.multi_compactor.input_chest_side", {
+  description = "The network address of the inventory take input from. (E.G. minecraft:chest_0)",
+  type = "string",
+})
+
+-- TODO: rewrite to use remote turtle name?
+settings.define("lupus590.multi_compactor.working_chest_name", {
+  description = "The network address of the inventory to work in. (E.G. minecraft:chest_0)",
+  type = "string",
+})
+
+settings.define("lupus590.multi_compactor.working_chest_side", {
+  description = "The side of the turtle that the working inventory is on. [ top | bottom | front ]",
+  type = "string",
+})
+
+settings.save()
+settings.load()
+
+local dropSide = settings.get("lupus590.multi_compactor.working_chest_side")
+local suckSide = settings.get("lupus590.multi_compactor.working_chest_side")
+
+dropSide = dropSide and dropSide:lower()
+suckSide = suckSide and suckSide:lower()
+
+if (not dropSide) or (dropSide ~= "top" and dropSide ~= "bottom" and dropSide ~= "front") then
+  error("Drop side is not set, use the set command and set lupus590.multi_compactor.working_chest_side to a valid side.", 0)
+end
+
+local drop = {
+  top = turtle.dropUp,
+  bottom = turtle.dropDown,
+  front = turtle.drop,
+}
+
+local suck = {
+  top = turtle.suckUp,
+  bottom = turtle.suckDown,
+  front = turtle.suck,
+}
+
+local suckFunc = suck[suckSide]
+local dropFunc = drop[dropSide]
 
 
 local function getConfigLocation(fileName) -- tries to place config next to program, avoiding read only locations and the startup directory and going for root instead
@@ -37,88 +84,21 @@ local function getConfigLocation(fileName) -- tries to place config next to prog
   end
 end
 
-local programName = arg[0] or fs.getName(shell.getRunningProgram())
-
-local configFileName = getConfigLocation(programName..".config")
-local recipeFileName = getConfigLocation(programName..".recipes")
+-- TODO: debug recipe duplication, maybe replace how they are saved
+local recipeFileName = getConfigLocation("multi_compactor.recipes")
 
 local recipes
-local config
 
-local function loadConfig()
-  local function unsafeLoad()
-    local file = fs.open(configFileName, "r")
-    config = textutils.unserialise(file.readAll())
-    file.close()
-  end
+local inputChest = peripheral.wrap(settings.get("lupus590.multi_compactor.input_chest_side"))
+or error("Bad config, could not find input chest: "..settings.get("lupus590.multi_compactor.input_chest_side"))
+local outputChest = peripheral.wrap(settings.get("lupus590.multi_compactor.output_chest_name"))
+or error("Bad config, could not find output chest: "..settings.get("lupus590.multi_compactor.output_chest_name"))
+local turtleChest = peripheral.wrap(settings.get("lupus590.multi_compactor.working_chest_name"))
+or error("Bad config, could not find turtle chest: " ..settings.get("lupus590.multi_compactor.working_chest_name"))
 
-  if (not fs.exists(configFileName)) or fs.isDir(configFileName) then
-    return false, "not a file"
-  end
-
-  return pcall(unsafeLoad)
-end
-
-local function createConfig()
-  local function unsafeSave()
-    local file = fs.open(configFileName, "w")
-    file.write([[{
-  input = "minecraft:chest_1",
-  output = "minecraft:chest_2",
-  turtleNeighbour = {
-    address = "minecraft:chest_3", -- the turtle needs to be able to access this directly
-    pos = "top", -- relative to the turtle, top/bottom/front
-  },]].."\n}")
-    file.close()
-  end
-
-  return pcall(unsafeSave)
-end
-
-local ok, data = loadConfig()
-if (not ok) and data == "not a file" then
-  local ok, err = createConfig()
-  if not ok then
-    error("Could not save config file.\n Got error: "..err,0)
-  end
-  print("Edit config file to continue. Find the config at:\n"..configFileName)
-  return
-end
-
-local inputChest = peripheral.wrap(config.input)
-or error("Bad config, could not find input chest: "..config.input)
-local outputChest = peripheral.wrap(config.output)
-or error("Bad config, could not find output chest: "..config.output)
-local turtleChest = peripheral.wrap(config.turtleNeighbour.address)
-or error("Bad config, could not find turtle chest: " ..config.turtleNeighbour.address)
-
-inputChest.PERIPHERAL_NAME = config.input
-outputChest.PERIPHERAL_NAME = config.output
-turtleChest.PERIPHERAL_NAME = config.turtleNeighbour.address
-turtleChest.POSITION = config.turtleNeighbour.pos:lower()
-
-local _, block, suckFunc, dropFunc
-if turtleChest.POSITION == "up" or turtleChest.POSITION == "top" then
-  _, block = turtle.inspectUp()
-  suckFunc = turtle.suckUp
-  dropFunc = turtle.dropUp
-elseif turtleChest.POSITION == "down" or turtleChest.POSITION == "bottom" then
-  _, block = turtle.inspectDown()
-  suckFunc = turtle.suckDown
-  dropFunc = turtle.dropDown
-elseif turtleChest.POSITION == "front" or turtleChest.POSITION == "forward"
-or turtleChest.POSITION == "forwards" then
-  _, block = turtle.inspect()
-  suckFunc = turtle.suck
-  dropFunc = turtle.drop
-else
-  error("Bad config, turtleNeighbour.pos is an invalid side. Expected up, down" .." or front. Got "..turtleChest.POSITION)
-end
-
-if (not block) or block.name ~=  "minecraft:chest" then
-  error("Could not find turtle neighbour chest, side checked"
-  ..turtleChest.POSITION)
-end
+inputChest.PERIPHERAL_NAME = settings.get("lupus590.multi_compactor.input_chest_side")
+outputChest.PERIPHERAL_NAME = settings.get("lupus590.multi_compactor.output_chest_name")
+turtleChest.PERIPHERAL_NAME = settings.get("lupus590.multi_compactor.working_chest_name")
 
 local w, h = term.getSize()
 local win = window.create(term.current(), 1, 1, w, h)
@@ -342,6 +322,7 @@ end
 
 local function compact()
   -- clean inventory
+  -- TODO: fix multi output
   for _, slot in pairs(threeXThreeSlots) do
     turtle.select(slot)
     dropFunc()
@@ -396,3 +377,4 @@ if not ok then
 end
 
 parallel.waitForAll(doUi, compact)
+-- TODO: fix messy term when closing the program
