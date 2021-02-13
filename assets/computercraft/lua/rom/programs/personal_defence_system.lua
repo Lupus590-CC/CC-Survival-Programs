@@ -1,3 +1,4 @@
+-- TODO: settings API?
 local whiteList = {["Handy__Andy"] = true}
 local POWER = 0.5
 local SLEEP_SECONDS = 0.5
@@ -16,11 +17,20 @@ local function fireAt(entity)
 	interface.fire(math.deg(yaw), math.deg(pitch), POWER)
 end
 
-while true do
-    for _, target in ipairs(interface.sense()) do
-        if whiteList[target.name] then
-            fireAt(target)
+local function main()
+    while true do
+        for _, target in ipairs(interface.sense()) do
+            if whiteList[target.name] then
+                fireAt(target)
+            end
         end
+        sleep(SLEEP_SECONDS)
     end
-    sleep(SLEEP_SECONDS)
 end
+
+local function anyKeyExit()
+    print("press any key to exit")
+    os.pullEvent("key")
+end
+
+parallel.waitForAny(main, anyKeyExit)
