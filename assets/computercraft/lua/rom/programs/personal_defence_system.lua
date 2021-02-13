@@ -1,11 +1,11 @@
+local whiteList = {["Handy__Andy"] = true}
+local POWER = 0.5
+local SLEEP_SECONDS = 0.5
+
 local interface = peripheral.wrap("back")
 assert(interface, "Must be run on a neural interface with a laser beam and entity sensor.")
 assert(interface.fire, "Must be run on a neural interface with a laser beam and entity sensor.")
 assert(interface.sense, "Must be run on a neural interface with a laser beam and entity sensor.")
-
-local whiteList = {["Handy__Andy"] = true}
-local SLEEP_SECONDS = 0.5
-local POWER = 0.5
 
 -- this part is adapted from SquidDev's example
 local function fireAt(entity)
@@ -15,7 +15,6 @@ local function fireAt(entity)
 
 	interface.fire(math.deg(yaw), math.deg(pitch), POWER)
 end
-
 
 while true do
     for _, target in ipairs(interface.sense()) do
