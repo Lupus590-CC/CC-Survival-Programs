@@ -13,27 +13,27 @@ local electricFurnaceInputSlot = 2
 local electricFurnaceOutputSlots = {3,4}
 
 local function addPeripheralName(peripheralName, wrappedPeripheral)
-    wrappedPeripheral.PERIPHERAL_NAME = peripheralName
+    wrappedPeripheral.PERIPHERAL_NAME = peripheralName -- TODO: peripheral.getName
     return wrappedPeripheral
 end
 
 local peripheralName = compactorInputChest
 compactorInputChest = peripheral.wrap(compactorInputChest)
-compactorInputChest.PERIPHERAL_NAME = peripheralName
+compactorInputChest.PERIPHERAL_NAME = peripheralName -- TODO: peripheral.getName
 peripheralName = compactorOutputChest
 compactorOutputChest = peripheral.wrap(compactorOutputChest)
-compactorOutputChest.PERIPHERAL_NAME = peripheralName
+compactorOutputChest.PERIPHERAL_NAME = peripheralName -- TODO: peripheral.getName
 peripheralName = outputChest
 outputChest = peripheral.wrap(outputChest)
-outputChest.PERIPHERAL_NAME = peripheralName
+outputChest.PERIPHERAL_NAME = peripheralName -- TODO: peripheral.getName
 
 for k, v in ipairs(inputChests) do
     inputChests[k] = peripheral.wrap(v)
-    inputChests[k].PERIPHERAL_NAME = v
+    inputChests[k].PERIPHERAL_NAME = v -- TODO: peripheral.getName
 end
 for k, v in ipairs(refuelChests) do
     refuelChests[k] = peripheral.wrap(v)
-    refuelChests[k].PERIPHERAL_NAME = v
+    refuelChests[k].PERIPHERAL_NAME = v -- TODO: peripheral.getName
 end
 
 local electricFurnaces = table.pack(peripheral.find(electricFurnaceName, addPeripheralName))
@@ -45,7 +45,7 @@ end
 
 local function compactSlots(chest)
     for slot in pairs(chest.list()) do
-        chest.pushItems(chest.PERIPHERAL_NAME, slot)
+        chest.pushItems(chest.PERIPHERAL_NAME, slot) -- TODO: peripheral.getName
     end
 end
 
@@ -56,7 +56,7 @@ local function moveFuelToChests()
             local limit = splitStacksToTarget(item.count, #refuelChests)
             if limit > 0 then
                 for _, refuelChest in ipairs(refuelChests) do
-                    compactorOutputChest.pushItems(refuelChest.PERIPHERAL_NAME, slot, limit)
+                    compactorOutputChest.pushItems(refuelChest.PERIPHERAL_NAME,  -- TODO: peripheral.getNameslot, limit)
                 end
             end
         end
@@ -70,7 +70,7 @@ local function moveToSmelters(chest, slot, item)
     for i, furnace in ipairs(electricFurnaces) do
         if i > amountToSmelt then return end
         
-        chest.pushItems(furnace.PERIPHERAL_NAME, slot, limit, electricFurnaceInputSlot)
+        chest.pushItems(furnace.PERIPHERAL_NAME, slot, limit,  -- TODO: peripheral.getNameelectricFurnaceInputSlot)
     end
 end
 
@@ -82,7 +82,7 @@ local function emptyInputChests()
                 if item.name == "minecraft:log" then
                     moveToSmelters(inputChest, slot, item)
                 end
-                inputChest.pushItems(outputChest.PERIPHERAL_NAME, slot)
+                inputChest.pushItems(outputChest.PERIPHERAL_NAME, slot) -- TODO: peripheral.getName
             end
         end
     end
@@ -91,7 +91,7 @@ end
 local function loadCompactor()
     for _, furnace in ipairs(electricFurnaces) do
         for _, outputSlot in ipairs(electricFurnaceOutputSlots) do
-            furnace.pushItems(compactorInputChest.PERIPHERAL_NAME, outputSlot)
+            furnace.pushItems(compactorInputChest.PERIPHERAL_NAME, outputSlot) -- TODO: peripheral.getName
         end
     end
 end

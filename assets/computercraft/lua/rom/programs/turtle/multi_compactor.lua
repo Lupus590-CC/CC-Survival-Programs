@@ -96,9 +96,9 @@ or error("Bad config, could not find output chest: "..settings.get("lupus590.mul
 local turtleChest = peripheral.wrap(settings.get("lupus590.multi_compactor.working_chest_name"))
 or error("Bad config, could not find turtle chest: " ..settings.get("lupus590.multi_compactor.working_chest_name"))
 
-inputChest.PERIPHERAL_NAME = settings.get("lupus590.multi_compactor.input_chest_side")
-outputChest.PERIPHERAL_NAME = settings.get("lupus590.multi_compactor.output_chest_name")
-turtleChest.PERIPHERAL_NAME = settings.get("lupus590.multi_compactor.working_chest_name")
+inputChest.PERIPHERAL_NAME = settings.get("lupus590.multi_compactor.input_chest_side") -- TODO: peripheral.getName
+outputChest.PERIPHERAL_NAME = settings.get("lupus590.multi_compactor.output_chest_name") -- TODO: peripheral.getName
+turtleChest.PERIPHERAL_NAME = settings.get("lupus590.multi_compactor.working_chest_name") -- TODO: peripheral.getName
 
 local w, h = term.getSize()
 local win = window.create(term.current(), 1, 1, w, h)
@@ -254,7 +254,7 @@ local function pullInput()
   repeat
     -- compact input chest
     for slot in pairs(inputChest.list()) do
-      inputChest.pushItems(inputChest.PERIPHERAL_NAME, slot)
+      inputChest.pushItems(inputChest.PERIPHERAL_NAME, slot) -- TODO: peripheral.getName
     end
 
     if not pairs(turtleChest.list())(turtleChest.list()) then
@@ -275,7 +275,7 @@ local function pullInput()
         end
         if hasRecipe and item.count >= minToPull then
           local limit = math.floor(item.count/minToPull)*minToPull
-          inputChest.pushItems(turtleChest.PERIPHERAL_NAME, slot, limit)
+          inputChest.pushItems(turtleChest.PERIPHERAL_NAME, slot, limit) -- TODO: peripheral.getName
           pulled = true
           break
         end
@@ -316,7 +316,7 @@ local function pushOutput()
   turtle.select(16)
   dropFunc()
   for slot, item in pairs(turtleChest.list()) do
-    while turtleChest.pushItems(outputChest.PERIPHERAL_NAME, slot) < item.count do end
+    while turtleChest.pushItems(outputChest.PERIPHERAL_NAME, slot) < item.count do end -- TODO: peripheral.getName
   end
 end
 
