@@ -298,10 +298,10 @@ else
     end
     local idealFlowRate = configData.idealFlowRate
 
-    local lastStatusTime = -statusSleetTime
+    local lastStatusTime = -statusSleepTime
     local lastStatus
     local function updateStatus(newStatus, usePrintError)
-        if lastStatus ~= newStatus or lastStatusTime + statusSleetTime < os.clock() then
+        if lastStatus ~= newStatus or lastStatusTime + statusSleepTime < os.clock() then
             lastStatus = newStatus
             lastStatusTime = os.clock()
             rednet.broadcast({reactorName = statusMessageIdentifier, status = newStatus, usePrintError = usePrintError},REACTOR_STATUS_PROTOCOL)
