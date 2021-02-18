@@ -6,15 +6,15 @@ local function addDestination(pipe, destinationinventory)
     local destination = {_backingTable = {name = destinationinventory}}
 
     function destination.setFilter(func)
-      expect(1, func, "function")
-      destination._backingTable.filter = func
-      return destination
+        expect(1, func, "function")
+        destination._backingTable.filter = func
+        return destination
     end
 
     function destination.setPriority(priority)
-      expect(1, priority, "number", "nil")
-      destination._backingTable.priority = priority
-      return destination
+        expect(1, priority, "number", "nil")
+        destination._backingTable.priority = priority
+        return destination
     end
 
     pipe._backingTable.destinations[destinationinventory] = destination._backingTable
@@ -23,85 +23,85 @@ local function addDestination(pipe, destinationinventory)
 end
 
 local function emptyFilter()
-  return true
+	return true
 end
 
 local function buildPipe(pipe)
-  local pipeBackingTable = pipe._backingTable -- { sourceName = ..., filter = ..., destinations = { [name] = { name = ..., filter = ..., prority = ...}}}
-  local builtPipe = {_backingTable = {source = peripheral.wrap(pipeBackingTable.sourceName), filter = pipeBackingTable.filter, destinations = {}}}
+	local pipeBackingTable = pipe._backingTable -- { sourceName = ..., filter = ..., destinations = { [name] = { name = ..., filter = ..., prority = ...}}}
+	local builtPipe = {_backingTable = {source = peripheral.wrap(pipeBackingTable.sourceName), filter = pipeBackingTable.filter, destinations = {}}}
 
 
-  builtPipe._backingTable.filter = builtPipe._backingTable.filter or emptyFilter
+	builtPipe._backingTable.filter = builtPipe._backingTable.filter or emptyFilter
 
-  local builtPipeDestinations = builtPipe._backingTable.destinations
-  for k, v in pairs(pipeBackingTable.destinations) do
-    local priority = v.priority or 0
-    builtPipeDestinations[priority] = builtPipeDestinations[priority] or {n = 0}
+	local builtPipeDestinations = builtPipe._backingTable.destinations
+	for k, v in pairs(pipeBackingTable.destinations) do
+		local priority = v.priority or 0
+		builtPipeDestinations[priority] = builtPipeDestinations[priority] or {n = 0}
 
-    local currentPriorityDestinations = builtPipeDestinations[priority]
-    currentPriorityDestinations.n = currentPriorityDestinations.n + 1
-    currentPriorityDestinations[currentPriorityDestinations.n] = {name = v.name, filter = v.filter or emptyFilter}
+		local currentPriorityDestinations = builtPipeDestinations[priority]
+		currentPriorityDestinations.n = currentPriorityDestinations.n + 1
+		currentPriorityDestinations[currentPriorityDestinations.n] = {name = v.name, filter = v.filter or emptyFilter}
 
-    builtPipeDestinations.min = builtPipeDestinations.min and math.min(builtPipeDestinations.min, priority) or 0
-    builtPipeDestinations.max = builtPipeDestinations.max and math.max(builtPipeDestinations.max, priority) or 0
-  end
+		builtPipeDestinations.min = builtPipeDestinations.min and math.min(builtPipeDestinations.min, priority) or 0
+		builtPipeDestinations.max = builtPipeDestinations.max and math.max(builtPipeDestinations.max, priority) or 0
+	end
 
-  function builtPipe.tick()
-    local source = builtPipe._backingTable.source
-    local destinations = builtPipe._backingTable.destinations
+	function builtPipe.tick()
+		local source = builtPipe._backingTable.source
+		local destinations = builtPipe._backingTable.destinations
 
-    for tank, fluid in pairs(source.tanks()) do
-      local allowOut, outLimit = builtPipe._backingTable.filter(fluid, tank)
-      if allowOut then
-        for i = builtPipeDestinations.min, builtPipeDestinations.max do
-          if destinations[i] then
-            for _, dest in ipairs(destinations[i]) do
-              local allowin, inLimit = dest.filter(fluid)
-              if allowin then
-                source.pushFluid(dest.name, (inLimit or outLimit) and math.min(inLimit or math.huge, outLimit or math.huge), fluid.name)
-              end
-            end
-          end
-        end
-      end
-    end
-  end
+		for tank, fluid in pairs(source.tanks()) do
+			local allowOut, outLimit = builtPipe._backingTable.filter(fluid, tank)
+			if allowOut then
+				for i = builtPipeDestinations.min, builtPipeDestinations.max do
+					if destinations[i] then
+						for _, dest in ipairs(destinations[i]) do
+							local allowin, inLimit = dest.filter(fluid)
+							if allowin then
+								source.pushFluid(dest.name, (inLimit or outLimit) and math.min(inLimit or math.huge, outLimit or math.huge), fluid.name)
+							end
+						end
+					end
+				end
+			end
+		end
+	end
 
-  return builtPipe
+	return builtPipe
 end
 
 local function newPipe(sourceInventory)
-  expect(1, sourceInventory, "string")
-  local pipe = {_backingTable = {sourceName = sourceInventory, destinations = {}}}
+	expect(1, sourceInventory, "string")
+	local pipe = {_backingTable = {sourceName = sourceInventory, destinations = {}}}
 
-  function pipe.addDestination(destinationinventory)
-    expect(1, destinationinventory, "string")
-    return addDestination(pipe, destinationinventory)
-  end
+	function pipe.addDestination(destinationinventory)
+		expect(1, destinationinventory, "string")
+		return addDestination(pipe, destinationinventory)
+	end
 
-  function pipe.removeDestination(destinationinventory)
-    expect(1, destinationinventory, "string")
-    pipe._backingTable.destinations[destinationinventory] = nil
-    return pipe
-  end
+	function pipe.removeDestination(destinationinventory)
+		expect(1, destinationinventory, "string")
+		pipe._backingTable.destinations[destinationinventory] = nil
+		return pipe
+	end
 
-  function pipe.setFilter(func)
-    expect(1, func, "function", "nil")
-    pipe._backingTable.filter = func
-    return pipe
-  end
+	function pipe.setFilter(func)
+		expect(1, func, "function", "nil")
+		pipe._backingTable.filter = func
+		return pipe
+	end
 
-  function pipe.build()
-    return buildPipe(pipe)
-  end
+	function pipe.build()
+		return buildPipe(pipe)
+	end
 
-  return pipe
+	return pipe
 end
 
 
 
 
 return {
-  newPipe = newPipe,
+	newPipe = newPipe,
 }
 
