@@ -4,7 +4,7 @@ if not name:find("^lupus590%.") then
     return nil, "not a Lupus590 module"
 end
 
--- TODO: init file support
+-- TODO: it would be nice if this could be added to startup
 
 -- strip off namespace and extention, convert to path, and put the extention back on
 name = name:gsub("^lupus590%.", ""):gsub("%.lua$",""):gsub("%.", "/")..".lua"
