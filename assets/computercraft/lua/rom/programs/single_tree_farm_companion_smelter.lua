@@ -56,7 +56,7 @@ local function moveFuelToChests()
             local limit = splitStacksToTarget(item.count, #refuelChests)
             if limit > 0 then
                 for _, refuelChest in ipairs(refuelChests) do
-                    compactorOutputChest.pushItems(refuelChest.PERIPHERAL_NAME,  -- TODO: peripheral.getNameslot, limit)
+                    compactorOutputChest.pushItems(refuelChest.PERIPHERAL_NAME, slot, limit) -- TODO: peripheral.getName
                 end
             end
         end
@@ -70,7 +70,7 @@ local function moveToSmelters(chest, slot, item)
     for i, furnace in ipairs(electricFurnaces) do
         if i > amountToSmelt then return end
         
-        chest.pushItems(furnace.PERIPHERAL_NAME, slot, limit,  -- TODO: peripheral.getNameelectricFurnaceInputSlot)
+        chest.pushItems(furnace.PERIPHERAL_NAME, slot, limit, electricFurnaceInputSlot) -- TODO: peripheral.getName
     end
 end
 
