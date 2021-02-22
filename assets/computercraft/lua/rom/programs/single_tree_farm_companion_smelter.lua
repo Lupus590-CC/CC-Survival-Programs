@@ -1,13 +1,49 @@
-local inputChests = {"minecraft:chest_41", "minecraft:chest_45"}
-local refuelChests = {"minecraft:chest_40", "minecraft:chest_46"}
-local outputChest = "minecraft:chest_42"
-local compactorInputChest = "minecraft:chest_44"
-local compactorOutputChest = "minecraft:chest_43"
-local proportionOfWoodToSmelt = 1/2
-local sleepTime = 120
+settings.define("lupus590.single_tree_farm_companion_smelter.output_chest", {
+    description = "The peripheral name of the output chest.",
+    type = "string",
+})
+
+settings.define("lupus590.single_tree_farm_companion_smelter.compactor_input_chest", {
+    description = "The peripheral name of the chest to put charcoal into for compression into charcoal blocks.",
+    type = "string",
+})
+
+settings.define("lupus590.single_tree_farm_companion_smelter.compactor_output_chest", {
+    description = "The peripheral name of the chest take charcoal blocks from after compression.",
+    type = "string",
+})
+
+settings.define("lupus590.single_tree_farm_companion_smelter.proportion_of_wood_to_smelt", {
+    description = "How much wood to smelt as a proportion. [0 - 1]",
+    type = "number",
+    default = 0.5,
+})
+
+settings.define("lupus590.single_tree_farm_companion_smelter.sleep_time", {
+    description = "How long to wait (in seconds) between process cycles.",
+    type = "number",
+    default = 120,
+})
+
+settings.save()
+settings.load()
+
+local proportionOfWoodToSmelt = settings.get("lupus590.single_tree_farm_companion_smelter.proportion_of_wood_to_smelt")
+
+if proportionOfWoodToSmelt < 0 or proportionOfWoodToSmelt > 1 then
+    error("Proportion of wood to smelt is not valid, it must be between 0 and 1.", 0)
+end
+
+local inputChests = {"minecraft:chest_41", "minecraft:chest_45"} -- TODO: find a way to make as a setting
+local refuelChests = {"minecraft:chest_40", "minecraft:chest_46"} -- TODO: find a way to make as a setting
+local outputChest = settings.get("lupus590.single_tree_farm_companion_smelter.output_chest") or error("Output chest is not set, use the set command and set lupus590.single_tree_farm_companion_smelter.output_chest to a valid side.", 0)
+local compactorInputChest = settings.get("lupus590.single_tree_farm_companion_smelter.compactor_input_chest") or error("Compactor input chest is not set, use the set command and set lupus590.single_tree_farm_companion_smelter.compactor_input_chest to a valid side.", 0)
+local compactorOutputChest = settings.get("lupus590.single_tree_farm_companion_smelter.compactor_output_chest") or error("Compactor output chest is not set, use the set command and set lupus590.single_tree_farm_companion_smelter.compactor_output_chest to a valid side.", 0)
+local sleepTime = settings.get("lupus590.single_tree_farm_companion_smelter.sleep_time")
 
 -- end of config
 
+-- TODO: thermal expansion support?
 local electricFurnaceName = "minecraft:gc electric furnace"
 local electricFurnaceInputSlot = 2
 local electricFurnaceOutputSlots = {3,4}
@@ -18,10 +54,10 @@ local function addPeripheralName(peripheralName, wrappedPeripheral)
 end
 
 local peripheralName = compactorInputChest
-compactorInputChest = peripheral.wrap(compactorInputChest)
+compactorInputChest = peripheral.wrap(compactorInputChest) -- TODO: optional?
 compactorInputChest.PERIPHERAL_NAME = peripheralName -- TODO: peripheral.getName
 peripheralName = compactorOutputChest
-compactorOutputChest = peripheral.wrap(compactorOutputChest)
+compactorOutputChest = peripheral.wrap(compactorOutputChest) -- TODO: optional?
 compactorOutputChest.PERIPHERAL_NAME = peripheralName -- TODO: peripheral.getName
 peripheralName = outputChest
 outputChest = peripheral.wrap(outputChest)
