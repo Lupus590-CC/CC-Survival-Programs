@@ -4,9 +4,9 @@ local POWER = 0.5
 local SLEEP_SECONDS = 0.5
 
 local interface = peripheral.wrap("back")
-assert(interface, "Must be run on a neural interface with a laser beam and entity sensor.")
-assert(interface.fire, "Must be run on a neural interface with a laser beam and entity sensor.")
-assert(interface.sense, "Must be run on a neural interface with a laser beam and entity sensor.")
+if not (interface and interface.fire and interface.sense) then
+    error("Must be run on a neural interface with a laser beam and entity sensor.",0)
+end
 
 -- this part is adapted from SquidDev's example
 local function fireAt(entity)
