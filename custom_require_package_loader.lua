@@ -5,6 +5,7 @@ if not name:find("^lupus590%.") then
 end
 
 -- TODO: it would be nice if this could be added to startup
+-- I don't fancy making a custom shell
 
 -- strip off namespace and extention, convert to path, and put the extention back on
 name = name:gsub("^lupus590%.", ""):gsub("%.lua$",""):gsub("%.", "/")..".lua"
