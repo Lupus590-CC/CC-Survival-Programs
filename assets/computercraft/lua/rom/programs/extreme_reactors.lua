@@ -22,7 +22,7 @@ local cyaniteOutputHatchName = "bigreactors:tileentityreactoraccessport_1"
 
 -- CONFIG END
 peripheral.find("modem", function(side) rednet.open(side) end)
-local REACTOR_STATUS_PROTOCOL = "Lupus590:extreamReactors/status"
+local REACTOR_STATUS_PROTOCOL = "Lupus590:extremeReactors/status"
 
 local function isPlethoraNeuralInterface()
     if turtle or pocket or commands then

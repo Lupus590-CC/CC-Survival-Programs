@@ -2,8 +2,8 @@
 
 -- TODO: currently is just the reactor status listener, but this will be modified to be more general
 
-local REACTOR_STATUS_PROTOCOL = "Lupus590:extreamReactors/status"
-
+local REACTOR_STATUS_PROTOCOL = "Lupus590:extremeReactors/status"
+peripheral.find("modem", function(side) rednet.open(side) end)
 local statusMessageBackgroundToggle = true
 
 term.setCursorPos(1,1)
@@ -42,7 +42,7 @@ local function messagePrinter()
             else
                 print(formatMessage(message))
             end
-            drawClockBar()                
+            drawClockBar()
             if statusMessageBackgroundToggle then
                 term.setBackgroundColour(colours.black)
             else
