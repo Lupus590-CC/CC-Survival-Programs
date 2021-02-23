@@ -1,34 +1,28 @@
+-- TODO: settings API
+
 -- REQUIRED CONFIG
 local reactorName = "BigReactors-Reactor_1"
 local overrideSide = "top" -- redstone signal disables the computers managing the reactor
 local maintenanceSleepTime = 1
 local fuelSleepTime = 120
-local statusSleetTime = 60
-local reprocesserSleepTime = 120
+local statusSleepTime = 60
 local statusMessageIdentifier = "Main Reactor" -- this is the name that will be sent with status messages when the computer sends them
 
 -- OPTIONAL CONFIG
 -- If you don't have these peripherals then you can ignore the config entry, the computer will try to continue without valid values
 local turbineName = "BigReactors-Turbine_6" -- edit the config if you know the ideal steam flow rate to skip the lengthy calibration stage
 local turbineTargetEnergyPercentage = 95 -- the turbine can be slow to react, setting this higher means that you have a bigger buffer but are more likly to waste power. However, if it's too low you have the risk of running out of power.
-local fuelChestName = "minecraft:chest_49"
-local fuelInputHatchName = "bigreactors:tileentityreactoraccessport_2"
+local fuelChestName = "minecraft:chest_63"
+local fuelInputHatchName = "bigreactors:tileentityreactoraccessport_3" -- TODO: have input and output port be the same
 local cyaniteChestName = "minecraft:chest_48"
 local cyaniteOutputHatchName = "bigreactors:tileentityreactoraccessport_1"
 
--- Turtle Reprocessor side config
-local reprocesserInputSuckFunc = turtle and turtle.suck
-local reprocesserOutputDropFunc = turtle and turtle.dropUp
-local reprocesserCompactSuckFunc = turtle and turtle.suckDown
-local reprocesserCompactDropFunc = turtle and turtle.dropDown
-local reprocesserCompactChestName = "bottom"
-local reprocesserInputChestName = "front"
-
+-- TODO: multiple port and reactor support
+-- TODO: move the steam
 
 -- CONFIG END
 peripheral.find("modem", function(side) rednet.open(side) end)
 local REACTOR_STATUS_PROTOCOL = "Lupus590:extreamReactors/status"
-local statusMessageBackgroundToggle = true
 
 local function isPlethoraNeuralInterface()
     if turtle or pocket or commands then
@@ -38,151 +32,11 @@ local function isPlethoraNeuralInterface()
 end
 
 if pocket or isPlethoraNeuralInterface() then
-    -- status listener
-    
-    term.setCursorPos(1,1)
-    term.clear()
-    term.setCursorPos(1,2)
-
-    local function drawClockBar()
-        local x, y = term.getCursorPos()
-        term.setCursorPos(1,1)
-        term.setBackgroundColour(colours.white)
-        term.setTextColour(colours.black)
-        term.clearLine()
-        term.setCursorPos(1,1)
-        term.write(textutils.formatTime(os.time("local")))
-        term.setCursorPos(x, y)
-        term.setTextColour(colours.white)
-    end
-
-    local function clockPrinter()
-        while true do
-            drawClockBar()
-            sleep(15)
-        end
-    end
-
-    local function formatMessage(message)
-        return textutils.formatTime(os.time("local"))..": "..message.reactorName..": "..message.status
-    end
-
-    local function messagePrinter()
-        while true do
-            local _, message, protocol = rednet.receive(REACTOR_STATUS_PROTOCOL, 10000000)
-            if type(message) == "table" then
-                if message.usePrintError then
-                    printError(formatMessage(message))
-                else
-                    print(formatMessage(message))
-                end
-                drawClockBar()                
-                if statusMessageBackgroundToggle then
-                    term.setBackgroundColour(colours.black)
-                else
-                    term.setBackgroundColour(colours.grey)
-                end
-                statusMessageBackgroundToggle = not statusMessageBackgroundToggle
-            end
-        end
-    end
-
-   parallel.waitForAny(messagePrinter, clockPrinter)
-
-elseif turtle then
-    -- cyanite reprocessor
-
-    if not turtle.craft then
-        error("crafting upgrade required")
-    end
-    local reprocessSlots = {
-        1,2,3,
-        5,  7,
-        9,10,11
-    }
-    local compactSlots = {
-        1,2,3,
-        5,6,7,
-        9,10,11
-    }
-    local cyaniteName = "bigreactors:ingotcyanite"
-    local bluetoniumIngotName = "bigreactors:ingotblutonium"
-    local bluetoniumBlockName = "bigreactors:blockblutonium"
-    local reprocesserCompactChest = peripheral.wrap(reprocesserCompactChestName)
-    local reprocesserInputChest = peripheral.wrap(reprocesserInputChestName)
-
-    local function compactInputChest()        
-        for slot in pairs(reprocesserInputChest.list()) do
-            reprocesserInputChest.pushItems(reprocesserInputChestName, slot)
-        end
-    end
-
-    local function compactCompactChest()
-        for slot in pairs(reprocesserCompactChest.list()) do
-            reprocesserCompactChest.pushItems(reprocesserCompactChestName, slot)
-        end
-    end
-
-    local function processCyanite()
-        compactInputChest()
-        local item = reprocesserInputChest.getItemMeta(1)
-        while item and item.count >= #reprocessSlots do            
-            local amountToSuck = math.floor(item.count/#reprocessSlots)
-            for _, slot in pairs(reprocessSlots) do
-                turtle.select(slot)
-                reprocesserInputSuckFunc(amountToSuck - turtle.getItemCount())
-            end
-            turtle.craft()
-            if (not reprocesserCompactDropFunc()) or turtle.getItemCount() > 0  then
-                break
-            end
-            compactInputChest()
-            item = reprocesserInputChest.getItemMeta(1)
-        end
-    end
-
-    local function compactBlutonium()
-        compactCompactChest()
-        local item = reprocesserCompactChest.getItemMeta(1)
-        while item and item.count >= #compactSlots do
-            local amountToSuck = math.floor(item.count/#compactSlots)
-            for _, slot in pairs(compactSlots) do
-                turtle.select(slot)
-                reprocesserCompactSuckFunc(amountToSuck - turtle.getItemCount())
-            end
-            turtle.craft()
-            while (not reprocesserOutputDropFunc()) or turtle.getItemCount() > 0 do
-                sleep(reprocesserSleepTime)
-            end
-            compactCompactChest()
-            item = reprocesserCompactChest.getItemMeta(1)
-        end
-    end
-
-    for slot = 1, 16 do
-        turtle.select(slot)
-        local item = turtle.getItemDetail()
-        if item and item.name ~= cyaniteName then
-            if item.name == bluetoniumBlockName then
-                while not reprocesserOutputDropFunc() do
-                    sleep(reprocesserSleepTime)
-                end
-            elseif item.name == bluetoniumIngotName then
-                if not reprocesserCompactDropFunc() then
-                    compactBlutonium()
-                end
-            else
-                error("Unknown item in inventory")
-            end
-        end
-    end
-
-    reprocesserSleepTime = 1
-    while true do
-        processCyanite()
-        compactBlutonium()
-        sleep(reprocesserSleepTime)
-    end
+    print("The status message listener has moved to its own program.")
+    return
+elseif turtle then    
+    print("The fuel reprocessor has moved to its own program.")
+    return
 else
     -- reactor manager
 
@@ -206,7 +60,7 @@ else
     local turbine = reactor.isActivelyCooled() and (peripheral.wrap(turbineName) or error("couldn't locate turbine with name/side "..turbineName, 0)) or nil
     local override = false
 
-    local config
+    local config -- TODO: require
     do
         --
         -- Copyright 2019 Lupus590
@@ -300,7 +154,9 @@ else
 
     local lastStatusTime = -statusSleepTime
     local lastStatus
-    local function updateStatus(newStatus, usePrintError)
+    local statusMessageBackgroundToggle = true
+
+    local function updateStatus(newStatus, usePrintError) -- TODO: use cc.strings
         if lastStatus ~= newStatus or lastStatusTime + statusSleepTime < os.clock() then
             lastStatus = newStatus
             lastStatusTime = os.clock()
