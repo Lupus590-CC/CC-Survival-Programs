@@ -6,7 +6,6 @@ local PASS_THROUGH_JUNK = false -- true to move unknown items to output, false t
 
 local argValidationUtils
 do
-
 	local function argChecker(position, value, validTypesList, level)
 		-- check our own args first, sadly we can't use ourself for this
 		if type(position) ~= "number" then
@@ -501,13 +500,9 @@ local HAMMERABLE = {
 	["minecraft:cobblestone"] = true,
 	["minecraft:gravel"] = true,
 	["minecraft:sand"] = true,
-  ["minecraft:sand"] = true,  
-	["minecraft:sand"] = true,
 	["minecraft:netherrack"] = true,
 	["minecraft:concrete"] = true,
 	["minecraft:wool"] = true,
-	["minecraft:stone"] = true,
-  ["minecraft:stone"] = true,  
 	["minecraft:stone"] = true,
 	["minecraft:endstone"] = true,
 	["minecraft:log"] = true,
