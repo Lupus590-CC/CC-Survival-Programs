@@ -8,6 +8,11 @@ local reprocesserCompactDropFunc = turtle and turtle.dropDown
 local reprocesserCompactChestName = "bottom"
 local reprocesserInputChestName = "front"
 local reprocesserSleepTime = 120
+local compactBlutonium = true
+
+if not compactBlutonium then
+    reprocesserCompactDropFunc = reprocesserOutputDropFunc
+end
 
 
 -- cyanite reprocessor
@@ -43,8 +48,10 @@ local function compactInputChest()
 end
 
 local function compactCompactChest()
-    for slot in pairs(reprocesserCompactChest.list()) do
-        reprocesserCompactChest.pushItems(reprocesserCompactChestName, slot)
+    if compactBlutonium then
+        for slot in pairs(reprocesserCompactChest.list()) do
+            reprocesserCompactChest.pushItems(reprocesserCompactChestName, slot)
+        end
     end
 end
 
@@ -109,6 +116,8 @@ end
 reprocesserSleepTime = 1
 while true do
     processCyanite()
-    compactBlutonium()
+    if compactBlutonium then
+        compactBlutonium()
+    end
     sleep(reprocesserSleepTime)
 end
