@@ -25,7 +25,7 @@ local reprocessSlots = {
     9,10,11
 }
 local compactSlots = { -- TODO: make compacting optional, some reactors don't like it
--- ingots might be better anyways
+-- ingots might be better for reactor performance anyways
     1,2,3,
     5,6,7,
     9,10,11
@@ -73,8 +73,9 @@ local function compactBlutonium()
         local amountToSuck = math.floor(item.count/#compactSlots)
         for _, slot in pairs(compactSlots) do
             turtle.select(slot)
-            reprocesserCompactSuckFunc(amountToSuck - turtle.getItemCount())
+            reprocesserCompactSuckFunc(math.max(amountToSuck - turtle.getItemCount(), 0))
         end
+        turtle.select(16)
         turtle.craft()
         while (not reprocesserOutputDropFunc()) or turtle.getItemCount() > 0 do
             sleep(reprocesserSleepTime)
