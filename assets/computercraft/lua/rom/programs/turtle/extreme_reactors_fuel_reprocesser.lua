@@ -50,13 +50,15 @@ end
 
 local function processCyanite()
     compactInputChest()
+    -- TODO: pull more from the chest
     local item = reprocesserInputChest.getItemMeta(1)
     while item and item.count >= #reprocessSlots do            
         local amountToSuck = math.floor(item.count/#reprocessSlots)
         for _, slot in pairs(reprocessSlots) do
             turtle.select(slot)
-            reprocesserInputSuckFunc(amountToSuck - turtle.getItemCount())
+            reprocesserInputSuckFunc(math.max(amountToSuck - turtle.getItemCount(), 0))
         end
+        turtle.select(16)
         turtle.craft()
         if (not reprocesserCompactDropFunc()) or turtle.getItemCount() > 0  then
             break
@@ -68,6 +70,7 @@ end
 
 local function compactBlutonium()
     compactCompactChest()
+    -- TODO: pull more from the chest
     local item = reprocesserCompactChest.getItemMeta(1)
     while item and item.count >= #compactSlots do
         local amountToSuck = math.floor(item.count/#compactSlots)
