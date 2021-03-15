@@ -1,4 +1,8 @@
 
+if not turtle.dig then
+	error("Requires turtle that can dig, a mining turtle is best.", 0)
+end
+
 if not shell.complete(shell.getRunningProgram().." ") then
 	local completion = require("cc.shell.completion")
 

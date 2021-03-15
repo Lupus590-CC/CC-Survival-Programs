@@ -33,7 +33,7 @@ local function formatMessage(message)
     return textutils.formatTime(os.time("local"))..": "..message.reactorName..": "..message.status
 end
 
-local function messagePrinter()
+local function messagePrinter() -- TODO: use cc.strings
     while true do
         local _, message, protocol = rednet.receive(REACTOR_STATUS_PROTOCOL, 10000000)
         if type(message) == "table" then

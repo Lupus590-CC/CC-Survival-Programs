@@ -17,8 +17,8 @@ local fuelInputHatchName = "bigreactors:tileentityreactoraccessport_3" -- TODO: 
 local cyaniteChestName = "minecraft:chest_48"
 local cyaniteOutputHatchName = "bigreactors:tileentityreactoraccessport_1"
 
--- TODO: multiple port and reactor support
--- TODO: move the steam
+-- TODO: multiple reactor support
+-- TODO: move the fluids via fluid pipe module
 
 -- CONFIG END
 peripheral.find("modem", function(side) rednet.open(side) end)

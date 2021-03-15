@@ -17,6 +17,8 @@ settings.define("lupus590.certus_seed.wait_time", {
 	description = "How long to wait (in seconds) before picking crystals up again.",
 	type = "number",
 	default = 120, -- TODO: find a good default
+	-- see: https://ftbwiki.org/Crystal_Growth_Accelerator#Accelerating_Time
+	-- might need to use patience
 })
 
 settings.save()

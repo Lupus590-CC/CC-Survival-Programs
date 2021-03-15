@@ -1,4 +1,4 @@
--- TODO: settings API?
+-- TODO: how to do settings API?
 local whiteList = {["Handy__Andy"] = true}
 local POWER = 0.5
 local SLEEP_SECONDS = 0.5

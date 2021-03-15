@@ -1,3 +1,5 @@
+-- TODO: settings API?
+-- TODO: use modules
 local cantMoveMaxWait = 10
 local TURTLE_SLOT_COUNT = 16
 

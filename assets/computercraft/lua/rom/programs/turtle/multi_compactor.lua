@@ -90,11 +90,11 @@ local recipeFileName = getConfigLocation("multi_compactor.recipes")
 local recipes
 
 local inputChest = peripheral.wrap(settings.get("lupus590.multi_compactor.input_chest_side"))
-or error("Bad config, could not find input chest: "..settings.get("lupus590.multi_compactor.input_chest_side"))
+or error("Bad config, could not find input chest: "..settings.get("lupus590.multi_compactor.input_chest_side", 0))
 local outputChest = peripheral.wrap(settings.get("lupus590.multi_compactor.output_chest_name"))
-or error("Bad config, could not find output chest: "..settings.get("lupus590.multi_compactor.output_chest_name"))
+or error("Bad config, could not find output chest: "..settings.get("lupus590.multi_compactor.output_chest_name", 0))
 local turtleChest = peripheral.wrap(settings.get("lupus590.multi_compactor.working_chest_name"))
-or error("Bad config, could not find turtle chest: " ..settings.get("lupus590.multi_compactor.working_chest_name"))
+or error("Bad config, could not find turtle chest: " ..settings.get("lupus590.multi_compactor.working_chest_name", 0))
 
 inputChest.PERIPHERAL_NAME = settings.get("lupus590.multi_compactor.input_chest_side") -- TODO: peripheral.getName
 outputChest.PERIPHERAL_NAME = settings.get("lupus590.multi_compactor.output_chest_name") -- TODO: peripheral.getName
@@ -323,6 +323,7 @@ end
 local function compact()
 	-- clean inventory
 	-- TODO: fix multi output
+	-- not an issue with stone bricks currently but other items might do more than one stack makes a stack, could help with compatability with an unpacking mode if I make that
 	for _, slot in pairs(threeXThreeSlots) do
 		turtle.select(slot)
 		dropFunc()
@@ -372,9 +373,17 @@ end
 local ok, err = loadRecipes()
 if not ok then
 	if err ~= "not a file" then
-		error("Error loading recipe file: "..err)
+		error("Error loading recipe file: "..err, 0)
 	end
 end
 
-parallel.waitForAll(doUi, compact)
--- TODO: fix messy term when closing the program
+local w, h = term.getSize()
+local win = window.create(term.current(), 1, 1, w, h)
+local oldTerm = term.redirect(win)
+
+local ok, err = pcall(parallel.waitForAll, doUi, compact)
+term.redirect(oldTerm)
+
+if not ok then
+    error(err, 0)
+end

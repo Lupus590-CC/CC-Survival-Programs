@@ -1,8 +1,11 @@
+-- TODO: settings API
+-- TODO: remove dynamic peripheral addition code
+
 local INPUT_CHEST_NAME = "minecraft:chest_21"
 local OUTPUT_CHEST_NAME = "minecraft:chest_22"
 local PASS_THROUGH_JUNK = false -- true to move unknown items to output, false to keep in input
 
--- TODO: remove unused API functions
+-- TODO: use modules
 
 local argValidationUtils
 do

@@ -1,4 +1,3 @@
-
 settings.define("lupus590.obsidian_generator.drop_side", {
     description = "The side to output into. [ top | bottom | front ]",
     type = "string",

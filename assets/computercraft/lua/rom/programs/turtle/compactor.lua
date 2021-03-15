@@ -52,6 +52,7 @@ local dropFunc = drop[dropSide]
 local maxWaitTime = 120
 local inputChestSide = suckSide
 
+-- TODO: unpacking mode?
 local threeXThreeSlots = {1,2,3,5,6,7,9,10,11}
 local twoXTwoSlots = {1,2,5,6}
 local slots

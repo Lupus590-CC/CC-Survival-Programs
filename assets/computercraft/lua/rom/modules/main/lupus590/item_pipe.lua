@@ -1,5 +1,6 @@
 -- TODO: better arg checking (valid peripherals etc.) and code cleanup
 -- TODO: invert flow option
+-- TODO: use assert
 local expect = require("cc.expect").expect
 
 local function addDestination(pipe, destinationinventory)
@@ -51,14 +52,16 @@ local function buildPipe(pipe)
 		local destinations = builtPipe._backingTable.destinations
 
 		for slot, item in pairs(source.list()) do
-			local allowOut, outLimit = builtPipe._backingTable.filter(item, slot)
+			local allowOut, outLimit = builtPipe._backingTable.filter(item, slot) -- TODO: pass the peripheral name too? wrap it?
 			if allowOut then
 				for i = builtPipeDestinations.min, builtPipeDestinations.max do
 					if destinations[i] then
 						for _, dest in ipairs(destinations[i]) do
-							local allowin, inLimit, destSlot = dest.filter(item)
+							local allowin, inLimit, destSlot = dest.filter(item) -- TODO: pass the peripheral name too? wrap it?
 							if allowin then
-								source.pushItems(dest.name, slot, (inLimit or outLimit) and math.min(inLimit or math.huge, outLimit or math.huge), destSlot)
+								local limit = (inLimit or outLimit) and math.min(inLimit or math.huge, outLimit or math.huge)
+								limit = limit and math.max(limit, 0)
+								source.pushItems(dest.name, slot, limit, destSlot)
 							end
 						end
 					end

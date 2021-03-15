@@ -6,7 +6,7 @@ local fuel = { ["minecraft:coal"] = true, ["minecraft:lava_bucket"] = true, ["ch
 local maxWaitTime = 120
 local targetFuelLevel = 500
 
--- TODO: offer to delete things on error when the only want to continue is to delete .LAMA etc.
+-- TODO: offer to delete things on error when the only way to continue is to delete .LAMA etc.
 
 local leaves = "minecraft:leaves"
 local logs = "minecraft:log"

@@ -16,7 +16,7 @@ local digSide = settings.get("lupus590.cobble_gen.dig_side")
 
 dropSide = dropSide and dropSide:lower()
 digSide = digSide and digSide:lower()
-
+-- TODO: convert this side setting stuff into a setting
 if (not dropSide) or (dropSide ~= "top" and dropSide ~= "bottom" and dropSide ~= "front" and dropSide ~= "no_auto_out") then
 	error("Drop side is not set, use the set command and set lupus590.cobble_gen.drop_side to a valid side.", 0)
 end
@@ -40,7 +40,7 @@ local dig = {
 
 local dropFunc = drop[dropSide]
 local digFunc = dig[digSide]
-local maxWaitTime = 120
+local maxWaitTime = 120 -- TODO: add setting
 
 local function allFull()
 	for i = 1, 16 do
@@ -62,7 +62,7 @@ local function emptyAll()
 				term.setCursorPos(1, y)
 				sleepTime = math.min(sleepTime + math.floor(sleepTime/2) +1, maxWaitTime)
 				write("Output full, waiting "..tostring(sleepTime).." seconds.")
-				os.sleep(sleepTime)
+				sleep(sleepTime)
 			end
 			if sleepTime > 0 then
 				print("Continuing output")
