@@ -1,3 +1,5 @@
+-- TODO: settings API
+
 --config
 local SOURCE_NAME = "minecraft:chest_38"
 local DESTINATION_NAME = "minecraft:chest_39"
@@ -13,6 +15,8 @@ local barrelTable = table.pack(peripheral.find("minecraft:block_barrel", addPeri
 local inputChest = peripheral.wrap(SOURCE_NAME)
 local outputChest = peripheral.wrap(DESTINATION_NAME)
 
+-- TODO: fluid support
+-- TODO: use item and fluid pipe
 
 local function moveToBarrel()
     while true do
