@@ -1,4 +1,5 @@
 -- TODO: settings API
+-- TODO: reactor gets very hot in activly cooled mode, this might be a sign of fuel inefficiency
 
 -- REQUIRED CONFIG
 local reactorName = "BigReactors-Reactor_1"
