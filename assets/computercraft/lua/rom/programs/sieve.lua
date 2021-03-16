@@ -1,9 +1,27 @@
--- TODO: settings API
 -- TODO: remove dynamic peripheral addition code
 
-local INPUT_CHEST_NAME = "minecraft:chest_25"
-local OUTPUT_CHEST_NAME = "minecraft:chest_26"
-local PASS_THROUGH_JUNK = true -- true to move unknown items to output, false to keep in input
+settings.define("lupus590.sieve.input_chest", {
+    description = "The peripheral name of the chest to input from.",
+    type = "string",
+})
+
+settings.define("lupus590.sieve.output_chest", {
+    description = "The peripheral name of the chest to output into.",
+    type = "string",
+})
+
+settings.define("lupus590.sieve.pass_through_junk", {
+    description = "True to move unknown items to output, false to keep in input.",
+    type = "boolean",
+	default = true,
+})
+
+settings.save()
+settings.load()
+
+local INPUT_CHEST_NAME = settings.get("lupus590.sieve.input_chest") or error("Input chest is not set, use the set command and set lupus590.sieve.input_chest to a valid networked peripheral.", 0)
+local OUTPUT_CHEST_NAME = settings.get("lupus590.sieve.output_chest") or error("Output chest is not set, use the set command and set lupus590.sieve.output_chest to a valid networked peripheral.", 0)
+local PASS_THROUGH_JUNK = settings.get("lupus590.sieve.pass_through_junk")
 
 -- TODO: use modules
 

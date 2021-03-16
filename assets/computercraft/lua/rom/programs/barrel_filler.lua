@@ -1,11 +1,27 @@
--- TODO: settings API
+settings.define("lupus590.barrel_filler.input_chest", {
+    description = "The peripheral name of the chest to input from.",
+    type = "string",
+})
 
---config
-local SOURCE_NAME = "minecraft:chest_38"
-local DESTINATION_NAME = "minecraft:chest_39"
-local SLEEP_SECONDS = 1
+settings.define("lupus590.barrel_filler.output_chest", {
+    description = "The peripheral name of the chest to output into.",
+    type = "string",
+})
 
---code
+settings.define("lupus590.barrel_filler.sleep_seconds", {
+    description = "True to move unknown items to output, false to keep in input.",
+    type = "number",
+	default = 1,
+})
+
+settings.save()
+settings.load()
+
+local SOURCE_NAME = settings.get("lupus590.barrel_filler.input_chest") or error("Input chest is not set, use the set command and set lupus590.barrel_filler.input_chest to a valid networked peripheral.", 0)
+local DESTINATION_NAME = settings.get("lupus590.barrel_filler.output_chest") or error("Output chest is not set, use the set command and set lupus590.barrel_filler.output_chest to a valid networked peripheral.", 0)
+local SLEEP_SECONDS = settings.get("lupus590.barrel_filler.sleep_seconds")
+
+-- TODO: peripheral.getName
 local function addPeripheralName(peripheralName, wrappedPeripheral)
     wrappedPeripheral.PERIPHERAL_NAME = peripheralName
     return wrappedPeripheral
