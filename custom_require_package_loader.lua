@@ -41,13 +41,12 @@ for _, path in ipairs(paths) do
     end
 
     if fs.exists(localPath) then
-    local fn, err = loadfile(localPath, nil, _ENV)
-    if fn then
-        return fn, localPath
-    else
-        return nil, err
-    end
+        local fn, err = loadfile(localPath, nil, _ENV)
+        if fn then
+            return fn, localPath
+        else
+            return nil, err
+        end
     end
 end
 return nil, table.concat(downloadErrors, "\n")
-end
