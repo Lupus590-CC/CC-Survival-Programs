@@ -1,25 +1,71 @@
 -- TODO: settings API
 -- TODO: reactor gets very hot in activly cooled mode, this might be a sign of fuel inefficiency
 
+settings.define("lupus590.extreme_reactors.reactor_name", {
+    description = "The peripheral name of the reactor.",
+    type = "string",
+})
+
+settings.define("lupus590.extreme_reactors.override_side", {
+    description = "The side to accept redstone signals for putting the reactor into manual mode. [ top | bottom | left | right | front | back ]",
+    type = "string",
+})
+
+settings.define("lupus590.extreme_reactors.maintenance_sleep_time", {
+    description = "How long to wait between reactor checks.",
+    type = "number",
+	default = 1,
+})
+
+settings.define("lupus590.extreme_reactors.fuel_sleep_time", {
+    description = "How long to wait between refuel cycles.",
+    type = "number",
+	default = 120,
+})
+
+settings.define("lupus590.extreme_reactors.status_sleep_time", {
+    description = "How long to wait before sending a status message that's the same as the immediate previous message.",
+    type = "number",
+	default = 60,
+})
+
+settings.save()
+settings.load()
+
 -- REQUIRED CONFIG
-local reactorName = "BigReactors-Reactor_1"
-local overrideSide = "top" -- redstone signal disables the computers managing the reactor
-local maintenanceSleepTime = 1
-local fuelSleepTime = 120
-local statusSleepTime = 60
+local reactorName = settings.get("lupus590.extreme_reactors.reactor_name") or error("Reactor name is not set, use the set command and set lupus590.extreme_reactors.reactor_name to a valid networked peripheral.", 0)
+local overrideSide = settings.get("lupus590.extreme_reactors.override_side")
+local maintenanceSleepTime = settings.get("lupus590.extreme_reactors.maintenance_sleep_time")
+local fuelSleepTime = settings.get("lupus590.extreme_reactors.fuel_sleep_time")
+local statusSleepTime = settings.get("lupus590.extreme_reactors.status_sleep_time")
 local statusMessageIdentifier = "Main Reactor" -- this is the name that will be sent with status messages when the computer sends them
 
 -- OPTIONAL CONFIG
 -- If you don't have these peripherals then you can ignore the config entry, the computer will try to continue without valid values
 local turbineName = "BigReactors-Turbine_6" -- edit the config if you know the ideal steam flow rate to skip the lengthy calibration stage
-local turbineTargetEnergyPercentage = 95 -- the turbine can be slow to react, setting this higher means that you have a bigger buffer but are more likly to waste power. However, if it's too low you have the risk of running out of power.
+local turbineTargetEnergyPercentage = 99 -- the turbine can be slow to react, setting this higher means that you have a bigger buffer but are more likly to waste power. However, if it's too low you have the risk of running out of power.
 local fuelChestName = "minecraft:chest_63"
 local fuelInputHatchName = "bigreactors:tileentityreactoraccessport_3" -- TODO: have input and output port be the same
 local cyaniteChestName = "minecraft:chest_48"
 local cyaniteOutputHatchName = "bigreactors:tileentityreactoraccessport_1"
 
+
+-- TODO: split the turbine into it's own program
+
+-- TODO: reactor temperature control, reactor get's less efficient if it's too hot. want to maximise fuel reactivity while maintaining required output
+-- TODO: better control rod usage, should help with temp control
 -- TODO: multiple reactor support
+-- TODO: multiple turbine support
 -- TODO: move the fluids via fluid pipe module
+-- TODO: can one reactor drive many turbines?
+-- TODO: can many reactors drive the same turbine?
+    -- if yes then might need a read only option for turbines
+
+overrideSide = overrideSide and overrideSide:lower()
+if not (overrideSide == "top" or overrideSide == "bottom" or overrideSide == "back" or overrideSide == "front" or overrideSide == "left" or overrideSide == "right") then
+    error("Override side is not set or is not valid, use the set command and set lupus590.extreme_reactors.override_side to a valid side.", 0)
+end
+
 
 -- CONFIG END
 peripheral.find("modem", function(side) rednet.open(side) end)
