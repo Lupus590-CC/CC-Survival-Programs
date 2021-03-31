@@ -1,5 +1,3 @@
--- TODO: reactor gets very hot in activly cooled mode, this might be a sign of fuel inefficiency
-
 settings.define("lupus590.extreme_reactors.reactor_name", {
     description = "The peripheral name of the reactor.",
     type = "string",
