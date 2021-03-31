@@ -1,4 +1,3 @@
--- TODO: settings API
 -- TODO: reactor gets very hot in activly cooled mode, this might be a sign of fuel inefficiency
 
 settings.define("lupus590.extreme_reactors.reactor_name", {
@@ -114,7 +113,7 @@ local function passivelyCooled()
     reactor.setAllControlRodLevels(rodLevelToSet)
 end
 
-local function activelyCooled() -- TODO: rewrite for steam
+local function activelyCooled()
 
     local steamStored = reactor.getHotFluidAmount()
     local steamCapacity = reactor.getHotFluidAmountMax()

@@ -1,5 +1,3 @@
--- TODO: settings API
-
 settings.define("lupus590.extreme_reactors_turbine.override_side", {
     description = "The side to accept redstone signals for putting the turbine into manual mode. [ top | bottom | left | right | front | back ]",
     type = "string",
