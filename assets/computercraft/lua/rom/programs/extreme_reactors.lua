@@ -125,8 +125,8 @@ local function reportPowerGenerated()
     local currentPower = reactor.getEnergyStored()
     if lastPowerAmount then
         local deltaPower = currentPower-lastPowerAmount -- positive means increasing
-        if (deltaPower > 0 and currentPower > 0) or reactor.getControlRodLevel(1) > 0 then
-            updateStatus("Stable steam generation")
+        if (deltaPower > 0 and currentPower > 0) or reactor.getControlRodLevel(0) > 0 then
+            updateStatus("Stable power generation")
         else
             updateStatus("WARNING! Power demand excedes max generation")
         end
@@ -139,7 +139,7 @@ local function reportSteamGenerated()
     local currentSteam = reactor.getEnergyStored()
     if lastSteamAmount then
         local deltaSteam = currentSteam-lastSteamAmount -- positive means increasing
-        if (deltaSteam > 0 and currentSteam > 0) or reactor.getControlRodLevel(1) > 0 then
+        if (deltaSteam > 0 and currentSteam > 0) or reactor.getControlRodLevel(0) > 0 then
             updateStatus("Stable steam generation")
         else
             updateStatus("WARNING! Steam demand excedes max generation")
