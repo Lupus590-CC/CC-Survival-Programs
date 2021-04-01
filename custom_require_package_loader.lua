@@ -1,6 +1,5 @@
 -- TODO: it would be nice if this could be added to startup
 -- I don't fancy making a custom shell
-
 package.loaders[#package.loaders + 1] = function(name)
     if not name:find("^lupus590%.") then
         return nil, "not a Lupus590 module"
