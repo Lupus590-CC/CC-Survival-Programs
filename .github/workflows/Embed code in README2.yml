@@ -30,4 +30,4 @@ jobs:
         uses: tokusumi/markdown-embed-code@v1.0.0
         with:
           # Token for the repo. Can be passed in using {{ secrets.GITHUB_TOKEN }}
-          token: secrets.GITHUB_TOKEN
+          token: ${{ secrets.GITHUB_TOKEN }}
