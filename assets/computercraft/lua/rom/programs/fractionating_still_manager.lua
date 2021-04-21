@@ -17,6 +17,7 @@ local fluids = {
     treeOil = "thermal:tree_oil",
 }
 
+-- TODO: change the filters for automatic still so that things are only piped in if the output will fit into it's storeage tank
 local tanks = {
     creosoteOil = {
         name = "cyclic:tank_1",
@@ -77,6 +78,8 @@ local inputPipe = fluidPipe.newPipe(inputTankName)
 local fractionalStillItemPipe = itemPipe.newPipe(fractionalStillName)
 local pyrolyzerItemPipe = itemPipe.newPipe(pyrolyzerName)
 
+-- TODO: pull out the item that can make heavy oil
+-- TODO: drawer controller
 peripheral.find("storagedrawers:fractional_drawers_3", function(name)
     fractionalStillItemPipe.addDestination(name)
     pyrolyzerItemPipe.addDestination(name)
