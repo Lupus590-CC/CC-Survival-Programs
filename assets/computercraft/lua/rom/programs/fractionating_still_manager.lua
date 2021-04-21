@@ -19,57 +19,57 @@ local fluids = {
 
 local tanks = {
     creosoteOil = {
-        name = "cyclic:cask_13",
+        name = "cyclic:tank_1",
         inFilter = function(fluid) return fluid.name == fluids.creosoteOil end,
         stillFilter = blockFilter,
     },
     heavyOil = {
-        name = "cyclic:cask_14",
+        name = "cyclic:tank_7",
         inFilter = function(fluid) return fluid.name == fluids.heavyOil end,
-        stillFilter = function(fluid, tank) if fluid.count and fluid.count > 100 then return true, 100 end end,
+        stillFilter = function(fluid, tank) if fluid.amount and fluid.amount >= 100 then return true, 100 end end,
     }, -- 100
     lightOil = {
-        name = "cyclic:cask_15",
+        name = "cyclic:tank_6",
         inFilter = function(fluid) return fluid.name == fluids.lightOil end,
-        stillFilter = function(fluid, tank) if fluid.count and fluid.count > 100 then return true, 100 end end,
+        stillFilter = function(fluid, tank) if fluid.amount and fluid.amount >= 100 then return true, 100 end end,
     }, -- 100
     refinedFuel = {
-        name = "cyclic:cask_16",
+        name = "cyclic:tank_9",
         inFilter = function(fluid) return fluid.name == fluids.refinedFuel end,
         stillFilter = blockFilter,
     },
     crudeOil = {
-        name = "cyclic:cask_17",
+        name = "cyclic:tank_2",
         inFilter = function(fluid) return fluid.name == fluids.crudeOil end,
-        stillFilter = function(fluid, tank) if fluid.count and fluid.count > 100 then return true, 100 end end,
+        stillFilter = function(fluid, tank) if fluid.amount and fluid.amount >= 100 then return true, 100 end end,
     }, -- 100
     sap = {
-        name = "cyclic:cask_18",
+        name = "cyclic:tank_3",
         inFilter = function(fluid) return fluid.name == fluids.sap end,
-        stillFilter = function(fluid, tank) if fluid.count and fluid.count > 1000 then return true, 1000 end end,
+        stillFilter = function(fluid, tank) if fluid.amount and fluid.amount >= 1000 then return true, 1000 end end,
     }, -- 1000
     syrup = {
-        name = "cyclic:cask_19",
+        name = "cyclic:tank_4",
         inFilter = function(fluid) return fluid.name == fluids.syrup end,
         stillFilter = blockFilter,
     },
     resin = {
-        name = "cyclic:cask_20",
+        name = "cyclic:tank_5",
         inFilter = function(fluid) return fluid.name == fluids.resin end,
-        stillFilter = function(fluid, tank) if fluid.count and fluid.count > 200 then return true, 200 end end,
+        stillFilter = function(fluid, tank) if fluid.amount and fluid.amount >= 200 then return true, 200 end end,
     }, -- 200
     treeOil = {
-        name = "cyclic:cask_21",
+        name = "cyclic:tank_8",
         inFilter = function(fluid) return fluid.name == fluids.treeOil end,
         stillFilter = blockFilter,
     },
 }
 
-local inputTankName = "cyclic:cask_22"
-local fractionalStillName = "thermal:machine_refinery_0"
-local pyrolyzerName = "thermal:machine_pyrolyzer_0"
+local inputTankName = "cyclic:tank_10"
+local fractionalStillName = "thermal:machine_refinery_1"
+local pyrolyzerName = "thermal:machine_pyrolyzer_1"
 
-local pipes = {}
+local storeagePipes = {}
 local fractionalStillPipe = fluidPipe.newPipe(fractionalStillName)
 local pyrolyzerPipe = fluidPipe.newPipe(pyrolyzerName)
 local inputPipe = fluidPipe.newPipe(inputTankName)
@@ -103,7 +103,7 @@ inputPipe.setFilter(unknownFluidPrinter)
 for name, tank in pairs(tanks) do
     local pipe = fluidPipe.newPipe(tank.name)
     pipe.addDestination(fractionalStillName).setFilter(tank.stillFilter)
-    pipes[name] = pipe.build()
+    storeagePipes[name] = pipe.build()
 
     fractionalStillPipe.addDestination(tank.name).setFilter(tank.inFilter)
     pyrolyzerPipe.addDestination(tank.name).setFilter(tank.inFilter)
@@ -115,7 +115,7 @@ local builtPyrolyzerPipe = pyrolyzerPipe.build()
 local builtInputPipe = inputPipe.build()
 
 while true do
-    for _, pipe in pairs(pipes) do
+    for _, pipe in pairs(storeagePipes) do
         pipe.tick()
     end
     builtPyrolyzerPipe.tick()
