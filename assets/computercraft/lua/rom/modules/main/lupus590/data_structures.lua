@@ -28,7 +28,7 @@ local function newQueue()
       return (queue._backingTable.tail - queue._backingTable.head) == 0
   end
 
-  function queue._compact() -- TODO: fix
+  function queue._compact() -- TODO: improve
       if queue.isEmpty() or queue._backingTable.head < queue._maxHeadDrift then return end
       local newPos = 1
       local backingTable = queue._backingTable
@@ -36,8 +36,8 @@ local function newQueue()
           backingTable[newPos] = backingTable[pos]
           newPos = newPos + 1
       end
-      backingTable.head = 0
-      backingTable.tail = newPos
+      backingTable.head = 1
+      backingTable.tail = newPos-1
   end
 
   function queue.enqueue(value)
@@ -49,7 +49,7 @@ local function newQueue()
       if queue.isEmpty() then
           error("Queue is empty, can't dequeue an empty queue.", 2)
       end
-      --queue._compact() -- TODO: restore
+      queue._compact()
       local value = queue._backingTable[queue._backingTable.head]
       queue._backingTable.head = queue._backingTable.head + 1
       return value
