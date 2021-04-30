@@ -20,7 +20,7 @@ local function newStack()
     end
 end
 
-local function newQueue()
+local function newQueue() -- TODO: make this a queue instead of a stack
     local queue = {_backingTable = {n=0}}
 
     function queue.isEmpty()
@@ -44,5 +44,5 @@ end
 
 return {
     newStack = newStack,
-    newQueue = newQueue,
+    -- newQueue = newQueue, -- TODO: put this back once it's working
 }
