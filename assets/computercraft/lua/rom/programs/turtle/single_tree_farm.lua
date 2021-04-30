@@ -319,7 +319,8 @@ do
     local function saveStack()
         io.open(fileLocation, "w"):write(textutils.serialise(stack)):close()
     end
-
+    
+    -- TODO: don't save if we didn't move (this could be the source of us getting lost)
     function movementStack.pushForward()
         stack.n = stack.n+1
         stack[stack.n] = "forward"
