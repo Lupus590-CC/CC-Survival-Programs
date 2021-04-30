@@ -22,14 +22,14 @@ local function newStack()
 end
 
 local function newQueue()
-  local queue = {_backingTable = {head=1, tail = 0}, _maxHeadDrift = 10}
+  local queue = {_backingTable = {head=0, tail = 0}, _maxHeadDrift = 10}
 
   function queue.isEmpty()
       return (queue._backingTable.tail - queue._backingTable.head) == 0
   end
 
   function queue._compact() -- TODO: improve
-      if queue.isEmpty() or queue._backingTable.head < queue._maxHeadDrift then return end
+      if queue.isEmpty() or queue._backingTable.head < queue._maxHeadDrift-1 then return end
       local newPos = 1
       local backingTable = queue._backingTable
       for pos = backingTable.head, backingTable.tail do
@@ -50,8 +50,8 @@ local function newQueue()
           error("Queue is empty, can't dequeue an empty queue.", 2)
       end
       queue._compact()
-      local value = queue._backingTable[queue._backingTable.head]
       queue._backingTable.head = queue._backingTable.head + 1
+      local value = queue._backingTable[queue._backingTable.head]
       return value
   end
   return queue
