@@ -28,7 +28,7 @@ local function newQueue()
       return (queue._backingTable.tail - queue._backingTable.head) == 0
   end
 
-  function queue._compact() -- TODO: improve
+  function queue._compact() -- TODO: this function also drifts, but fixes itself after a few iterations and then drifts again and fixes again and so on
       if queue.isEmpty() or queue._backingTable.head < queue._maxHeadDrift-1 then return end
       local newPos = 1
       local backingTable = queue._backingTable
@@ -49,9 +49,9 @@ local function newQueue()
       if queue.isEmpty() then
           error("Queue is empty, can't dequeue an empty queue.", 2)
       end
-      queue._compact()
       queue._backingTable.head = queue._backingTable.head + 1
       local value = queue._backingTable[queue._backingTable.head]
+      queue._compact()
       return value
   end
   return queue
