@@ -28,7 +28,7 @@ local function newQueue()
       return (queue._backingTable.tail - queue._backingTable.head) == 0
   end
 
-  function queue._compact() -- TODO: this function also drifts, but fixes itself after a few iterations and then drifts again and fixes again and so on
+  function queue._compact()
       if queue.isEmpty() or queue._backingTable.head < queue._maxHeadDrift-1 then return end
       local newPos = 1
       local backingTable = queue._backingTable
