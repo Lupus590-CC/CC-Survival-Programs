@@ -1,20 +1,21 @@
 name: Embed code in README
 
 on: 
-  push:
-    paths:
-      - 'README.md'
-      - 'custom_require_package_loader.lua'
-      - '.github/*'
-    branches: 
-      - 'master'
-  pull_request:
-    paths:
-      - 'README.md'
-      - 'custom_require_package_loader.lua'
-      - '.github/*'
-    branches: 
-      - 'master'
+  workflow_dispatch
+  #push:
+  #  paths:
+  #    - 'README.md'
+  #    - 'custom_require_package_loader.lua'
+  #    - '.github/*'
+  #  branches: 
+  #    - 'master'
+  #pull_request:
+  #  paths:
+  #    - 'README.md'
+  #    - 'custom_require_package_loader.lua'
+  #    - '.github/*'
+  #  branches: 
+  #    - 'master'
 
 jobs:
   embed-code:
