@@ -7,8 +7,8 @@ if not shell.complete(shell.getRunningProgram().." ") then
 	local completion = require("cc.shell.completion")
 
 	shell.setCompletionFunction(shell.getRunningProgram(), completion.build(
-			{ completion.choice, { "down ", "up", "forward" } },
-			{ completion.choice, { "veinMine", "noVeinMine" } }
+		{ completion.choice, { "down ", "up", "forward" } },
+		{ completion.choice, { "veinMine", "noVeinMine" } }
 	))
 end
 
