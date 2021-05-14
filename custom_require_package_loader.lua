@@ -10,7 +10,7 @@ package.loaders[#package.loaders + 1] = function(name)
 
     local localPathRoot = "/.cache/lupus590/"
 
-    -- build in doesn't have pocket and advanced and such like APIs do, if this changes then we just need to add the appropriate part here
+    -- built in doesn't have pocket and advanced and such like APIs do, if this changes then we just need to add the appropriate part here
     local paths = {"main/", n=1}
     if turtle then
         paths.n = paths.n + 1
