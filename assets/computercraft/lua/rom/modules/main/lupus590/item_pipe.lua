@@ -47,7 +47,7 @@ local function buildPipe(pipe)
 		builtPipeDestinations.max = builtPipeDestinations.max and math.max(builtPipeDestinations.max, priority) or 0
 	end
 
-	function builtPipe.tick()
+	function builtPipe.tick() -- TODO: return true if items moved (client programs can then sleep longer if we didn't move anything)
 		local source = builtPipe._backingTable.source
 		local destinations = builtPipe._backingTable.destinations
 
