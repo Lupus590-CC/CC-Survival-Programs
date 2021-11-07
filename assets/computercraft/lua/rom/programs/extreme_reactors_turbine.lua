@@ -16,7 +16,7 @@ settings.define("lupus590.extreme_reactors_turbine.status_sleep_time", {
 })
 
 settings.define("lupus590.extreme_reactors_turbine.turbine_name", {
-    description = "An identifier for this turbine.",
+    description = "APeripheral name of the turbine.",
     type = "string",
 })
 
