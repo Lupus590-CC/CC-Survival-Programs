@@ -16,7 +16,7 @@ settings.define("lupus590.extreme_reactors_turbine.status_sleep_time", {
 })
 
 settings.define("lupus590.extreme_reactors_turbine.turbine_name", {
-    description = "The side to accept redstone signals for putting the turbine into manual mode. [ top | bottom | left | right | front | back ]",
+    description = "An identifier for this turbine.",
     type = "string",
 })
 
