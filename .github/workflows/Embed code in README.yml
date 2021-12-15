@@ -1,31 +1,40 @@
 name: Embed code in README
 
 on: 
-  workflow_dispatch:
-  #push:
-  #  paths:
-  #    - 'README.md'
-  #    - 'custom_require_package_loader.lua'
-  #    - '.github/*'
-  #  branches: 
-  #    - 'master'
-  #pull_request:
-  #  paths:
-  #    - 'README.md'
-  #    - 'custom_require_package_loader.lua'
-  #    - '.github/*'
-  #  branches: 
-  #    - 'master'
+  push:
+    paths:
+      - 'README.md'
+      - 'custom_require_package_loader.lua'
+      - '.github/*'
+    branches: 
+      - 'master'
+  pull_request:
+    paths:
+      - 'README.md'
+      - 'custom_require_package_loader.lua'
+      - '.github/*'
+    branches: 
+      - 'master'
 
 jobs:
   embed-code:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2.4.0
+      - uses: actions/checkout@v2
         with:
-          persist-credentials: true # otherwise, the token used is the GITHUB_TOKEN, instead of your personal token
+          persist-credentials: false # otherwise, the token used is the GITHUB_TOKEN, instead of your personal token
           fetch-depth: 0 # otherwise, you will failed to push refs to dest repo
 
-      - uses: technology-studio-forks/markdown-embed-code@v1.1.0
+      - uses: tokusumi/markdown-embed-code@main
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          markdown: "README.md"
+      - name: Commit files
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git commit -m "Embedding code into Markdown" -a
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.head_ref }}
