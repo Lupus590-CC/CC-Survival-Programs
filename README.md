@@ -59,4 +59,3 @@ package.loaders[#package.loaders + 1] = function(name)
 end
 
 ```
-
