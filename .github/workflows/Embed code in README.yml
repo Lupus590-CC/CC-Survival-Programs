@@ -6,14 +6,14 @@ on:
     paths:
       - 'README.md'
       - 'custom_require_package_loader.lua'
-      - '.github/*'
+      - '.github/workflows/Embed code in README.yml'
     branches: 
       - 'master'
   pull_request:
     paths:
       - 'README.md'
       - 'custom_require_package_loader.lua'
-      - '.github/*'
+      - '.github/workflows/Embed code in README.yml'
     branches: 
       - 'master'
 
