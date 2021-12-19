@@ -3,9 +3,7 @@ Alternativly, put it into its own file and require that file when you would put 
 
 This snippet is based on the one from [Metis](https://metis.madefor.cc/), but it's very heavily modified at this point.
 
-Oh, and if the [original file](custom_require_package_loader.lua) has been modified more recently than this readme then use that file, the actions bot is probably about to update this or is broken. 
-
-Or of this tracker is red, then you'll want to use the original file. ![Embed code in README](https://github.com/Lupus590-CC/CC-Survival-Programs/actions/workflows/Embed_code_in_README.yml/badge.svg)
+Or if this tracker is red, then you'll want to use the [original file](custom_require_package_loader.lua), if it's yellow then it's updating so you might want to wait a minute. ![Embed code in README](https://github.com/Lupus590-CC/CC-Survival-Programs/actions/workflows/Embed_code_in_README.yml/badge.svg)
 
 ```lua:custom_require_package_loader.lua
 -- TODO: it would be nice if this could be added to startup
