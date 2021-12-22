@@ -1,3 +1,9 @@
+--[[
+local duration = require("duration")
+sleep(1 * duration.minute)
+sleep(2 * duration.minutes + 30 * duration.seconds)
+]]
+
 local duration= {
 	second = 1,
 	seconds = 1,
