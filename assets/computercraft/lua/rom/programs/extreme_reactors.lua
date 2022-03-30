@@ -26,6 +26,11 @@ settings.define("lupus590.extreme_reactors.status_sleep_time", {
 	default = 60,
 })
 
+settings.define("lupus590.extreme_reactors.is_actively_cooled_reactor", {
+    description = "If the program can't figure out if the reactor is actively cooled or passivly cooled (i.e. if it produces steam or RF) then you can tell the program here. True for actively cooled, false for passively",
+    type = "boolean",
+})
+
 settings.save()
 settings.load()
 
@@ -35,6 +40,7 @@ local overrideSide = settings.get("lupus590.extreme_reactors.override_side")
 local maintenanceSleepTime = settings.get("lupus590.extreme_reactors.maintenance_sleep_time")
 local fuelSleepTime = settings.get("lupus590.extreme_reactors.fuel_sleep_time")
 local statusSleepTime = settings.get("lupus590.extreme_reactors.status_sleep_time")
+local isActivelyCooled = settings.get("lupus590.extreme_reactors.is_actively_cooled_reactor")
 local statusMessageIdentifier = "Main Reactor" -- this is the name that will be sent with status messages when the computer sends them
 
 local fuelChestName = "minecraft:chest_63"
@@ -111,7 +117,6 @@ local function passivelyCooled()
 end
 
 local function activelyCooled()
-
     local steamStored = reactor.getHotFluidAmount()
     local steamCapacity = reactor.getHotFluidAmountMax()
     local steamFilledPercentage = (steamStored / steamCapacity) * 100
@@ -148,20 +153,27 @@ local function reportSteamGenerated()
 end
 
 local function maintanenceLoop()
+	local maintainFunc
+	local reportGenFunc
+
+	if reactor.isActivelyCooled == nil and isActivelyCooled == nil then
+		error("Program failed to detect if this was an actively cooled or passively cooled reactor, please use the set command and set lupus590.extreme_reactors.is_actively_cooled to a valid value.", 0)
+	end
+
+	if isActivelyCooled or reactor.isActivelyCooled() then
+		maintainFunc = activelyCooled
+		reportGenFunc = reportSteamGenerated
+	else
+		maintainFunc = passivelyCooled
+		reportGenFunc = reportPowerGenerated
+	end
+
     while true do
         if not override then
             reactor.setActive(true)
 
-            if reactor.isActivelyCooled() then
-                activelyCooled()
-
-                reportSteamGenerated()
-            else
-                passivelyCooled()
-
-                reportPowerGenerated()
-            end
-
+			maintainFunc()
+			reportGenFunc()
 
             sleep(maintenanceSleepTime)
         else
