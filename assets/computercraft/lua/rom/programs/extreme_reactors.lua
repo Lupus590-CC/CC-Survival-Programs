@@ -4,7 +4,7 @@ settings.define("lupus590.extreme_reactors.reactor_name", {
 })
 
 settings.define("lupus590.extreme_reactors.override_side", {
-    description = "The side to accept redstone signals for putting the reactor into manual mode. [ top | bottom | left | right | front | back ]",
+    description = "The side to accept redstone signals for putting the reactor into manual mode. [ top | bottom | left | right | front | back | no_manual ]",
     type = "string",
 })
 
@@ -47,10 +47,9 @@ local cyaniteOutputHatchName = "bigreactors:tileentityreactoraccessport_1"
 -- TODO: multiple reactor support?
 
 overrideSide = overrideSide and overrideSide:lower()
-if not (overrideSide == "top" or overrideSide == "bottom" or overrideSide == "back" or overrideSide == "front" or overrideSide == "left" or overrideSide == "right") then
+if not (overrideSide == "top" or overrideSide == "bottom" or overrideSide == "back" or overrideSide == "front" or overrideSide == "left" or overrideSide == "right" or overrideSide == "no_manual") then
     error("Override side is not set or is not valid, use the set command and set lupus590.extreme_reactors.override_side to a valid side.", 0)
 end
-
 
 -- CONFIG END
 peripheral.find("modem", function(side) rednet.open(side) end)
@@ -155,7 +154,7 @@ local function maintanenceLoop()
 
             if reactor.isActivelyCooled() then
                 activelyCooled()
-                
+
                 reportSteamGenerated()
             else
                 passivelyCooled()
@@ -172,10 +171,14 @@ local function maintanenceLoop()
 end
 
 local function overrideSwitch()
+	if overrideSide == "no_manual" then
+		updateStatus("No override side set, reactor will always be managed by the computer")
+		os.pullEvent("Lupus590.NonExistingEvent")
+	end
     local function printControlState()
         if override then
             updateStatus("Manual override active")
-            
+
         else
             updateStatus("Reactor managed by computer")
         end
