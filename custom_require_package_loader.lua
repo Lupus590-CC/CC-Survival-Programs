@@ -45,6 +45,7 @@ package.loaders[#package.loaders + 1] = function(name)
             else
                 return nil, err
             end
+		-- else we probably got download errors which we will be returning below
         end
     end
     return nil, table.concat(downloadErrors, "\n")
