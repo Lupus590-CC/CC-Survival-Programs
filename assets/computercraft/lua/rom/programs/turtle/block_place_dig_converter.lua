@@ -1,4 +1,5 @@
 local toConvertItems = {
+	-- TODO: we way want to know what it shold convert into, could be useful for communicating to a crafting system
 	["minecraft:gravel"] = true, -- minecraft:flint
 	["minecraft:stone"] = true, -- minecraft:cobblestone
 	["minecraft:grass"] = true, -- minecraft:dirt
@@ -6,17 +7,17 @@ local toConvertItems = {
 
 -- code
 
-settings.define("lupus590.gravel_to_flint_converter.drop_side", {
+settings.define("lupus590.block_place_dig_converter.drop_side", {
 	description = "The side to output into. [ top | bottom | front ]",
 	type = "string",
 })
 
-settings.define("lupus590.gravel_to_flint_converter.suck_side", {
+settings.define("lupus590.block_place_dig_converter.suck_side", {
 	description = "The side to input from. [ top | bottom | front ]",
 	type = "string",
 })
 
-settings.define("lupus590.gravel_to_flint_converter.dig_side", {
+settings.define("lupus590.block_place_dig_converter.dig_side", {
 	description = "The side to dig. [ top | bottom | front ]",
 	type = "string",
 })
@@ -24,24 +25,24 @@ settings.define("lupus590.gravel_to_flint_converter.dig_side", {
 settings.save()
 settings.load()
 
-local dropSide = settings.get("lupus590.gravel_to_flint_converter.drop_side")
-local suckSide = settings.get("lupus590.gravel_to_flint_converter.suck_side")
-local digSide = settings.get("lupus590.gravel_to_flint_converter.dig_side")
+local dropSide = settings.get("lupus590.block_place_dig_converter.drop_side")
+local suckSide = settings.get("lupus590.block_place_dig_converter.suck_side")
+local digSide = settings.get("lupus590.block_place_dig_converter.dig_side")
 
 dropSide = dropSide and dropSide:lower()
 suckSide = suckSide and suckSide:lower()
 digSide = digSide and digSide:lower()
 
 if (not dropSide) or (dropSide ~= "top" and dropSide ~= "bottom" and dropSide ~= "front") then
-	error("Drop side is not set, use the set command and set lupus590.gravel_to_flint_converter.drop_side to a valid side.", 0)
+	error("Drop side is not set, use the set command and set lupus590.block_place_dig_converter.drop_side to a valid side.", 0)
 end
 
 if (not suckSide) or (suckSide ~= "top" and suckSide ~= "bottom" and suckSide ~= "front") then
-	error("Suck side is not set, use the set command and set lupus590.gravel_to_flint_converter.suck_side to a valid side.", 0)
+	error("Suck side is not set, use the set command and set lupus590.block_place_dig_converter.suck_side to a valid side.", 0)
 end
 
 if (not digSide) or (digSide ~= "top" and digSide ~= "bottom" and digSide ~= "front") then
-	error("Dig side is not set, use the set command and set lupus590.gravel_to_flint_converter.dig_side to a valid side.", 0)
+	error("Dig side is not set, use the set command and set lupus590.block_place_dig_converter.dig_side to a valid side.", 0)
 end
 
 local drop = {
