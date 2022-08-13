@@ -1,4 +1,8 @@
-local toConvertItems = { ["minecraft:gravel"] = true}
+local toConvertItems = {
+	["minecraft:gravel"] = true, -- minecraft:flint
+	["minecraft:stone"] = true, -- minecraft:cobblestone
+	["minecraft:grass"] = true, -- minecraft:dirt
+}
 
 -- code
 
