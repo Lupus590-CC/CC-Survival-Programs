@@ -1,41 +1,52 @@
 -- TODO: better arg checking (valid peripherals etc.) and code cleanup
--- TODO: invert flow option
--- TODO: use assert
 local expect = require("cc.expect").expect
+
+local function emptyFilter()
+	return true
+end
+
+local function addFilterAndPrioritySetters(sourceOrDestination)
+	function sourceOrDestination.setFilter(func)
+        expect(1, func, "function", "nil")
+			sourceOrDestination._backingTable.filter = func or emptyFilter
+        return sourceOrDestination
+    end
+
+    function sourceOrDestination.setPriority(priority)
+        expect(1, priority, "number", "nil")
+        sourceOrDestination._backingTable.priority = priority
+        return sourceOrDestination
+    end
+end
+
+local function addSource(pipe, sourceinventory)
+    local source = {_backingTable = {name = sourceinventory}}
+
+    addFilterAndPrioritySetters(source)
+
+    pipe._backingTable.sources[sourceinventory] = source._backingTable
+
+    return source
+end
 
 local function addDestination(pipe, destinationinventory)
     local destination = {_backingTable = {name = destinationinventory}}
 
-    function destination.setFilter(func)
-        expect(1, func, "function")
-        destination._backingTable.filter = func
-        return destination
-    end
-
-    function destination.setPriority(priority)
-        expect(1, priority, "number", "nil")
-        destination._backingTable.priority = priority
-        return destination
-    end
+    addFilterAndPrioritySetters(destination)
 
     pipe._backingTable.destinations[destinationinventory] = destination._backingTable
 
     return destination
 end
 
-local function emptyFilter()
-	return true
-end
 
-local function buildPipe(pipe)
-	local pipeBackingTable = pipe._backingTable -- { sourceName = ..., filter = ..., destinations = { [name] = { name = ..., filter = ..., prority = ...}}}
-	local builtPipe = {_backingTable = {source = peripheral.wrap(pipeBackingTable.sourceName), filter = pipeBackingTable.filter, destinations = {}}}
-
-
-	builtPipe._backingTable.filter = builtPipe._backingTable.filter or emptyFilter
-
+-- TODO: duplicte code
+local function buildDestinations(pipeBackingTable, builtPipe)
 	local builtPipeDestinations = builtPipe._backingTable.destinations
-	for k, v in pairs(pipeBackingTable.destinations) do
+	if (not pipeBackingTable.destinations) or (not next(pipeBackingTable.destinations)) then
+		error("No destinations for pipe", 4)
+	end
+	for _, v in pairs(pipeBackingTable.destinations) do
 		local priority = v.priority or 0
 		builtPipeDestinations[priority] = builtPipeDestinations[priority] or {n = 0}
 
@@ -43,25 +54,68 @@ local function buildPipe(pipe)
 		currentPriorityDestinations.n = currentPriorityDestinations.n + 1
 		currentPriorityDestinations[currentPriorityDestinations.n] = {name = v.name, filter = v.filter or emptyFilter}
 
-		builtPipeDestinations.min = builtPipeDestinations.min and math.min(builtPipeDestinations.min, priority) or 0
-		builtPipeDestinations.max = builtPipeDestinations.max and math.max(builtPipeDestinations.max, priority) or 0
+		builtPipeDestinations.min = math.min(builtPipeDestinations.min or 0, priority)
+		builtPipeDestinations.max = math.max(builtPipeDestinations.max or 0, priority)
 	end
+end
 
-	function builtPipe.tick()
-		local source = builtPipe._backingTable.source
+local function buildSources(pipeBackingTable, builtPipe)
+	local builtPipeSources = builtPipe._backingTable.sources
+	if (not pipeBackingTable.sources) or (not next(pipeBackingTable.sources)) then
+		error("No Sources for pipe", 4)
+	end
+	for _, v in pairs(pipeBackingTable.sources) do
+		local priority = v.priority or 0
+		builtPipeSources[priority] = builtPipeSources[priority] or {n = 0}
+
+		local currentPrioritySources = builtPipeSources[priority]
+		currentPrioritySources.n = currentPrioritySources.n + 1
+		currentPrioritySources[currentPrioritySources.n] = {name = v.name, filter = v.filter or emptyFilter}
+
+		builtPipeSources.min = math.min(builtPipeSources.min or 0, priority)
+		builtPipeSources.max = math.max(builtPipeSources.max or 0, priority)
+	end
+end
+
+local function buildPipe(pipe)
+	local pipeBackingTable = pipe._backingTable
+	--[[ {
+		sources = { [name] = { name = ..., filter = ..., prority = ...}},
+		filter = ...,
+		destinations = { [name] = { name = ..., filter = ..., prority = ...}}
+	} ]]
+
+	local builtPipe = {_backingTable = {sources = {}, destinations = {}}}
+	--[[ {
+		sources = { min = 0, max = 0, [priority] = { [n] = { name = ..., filter = ...}}},
+		destinations = { min = 0, max = 0, [priority] = { [n] = { name = ..., filter = ...}}}
+	} ]]
+
+	buildDestinations(pipeBackingTable, builtPipe)
+	buildSources(pipeBackingTable, builtPipe)
+
+	function builtPipe.tick() -- TODO: return true if items moved (client programs can then sleep longer if we didn't move anything)
+		local sources = builtPipe._backingTable.sources
 		local destinations = builtPipe._backingTable.destinations
 
-		for tank, fluid in pairs(source.tanks()) do
-			local allowOut, outLimit = builtPipe._backingTable.filter(fluid, tank) -- TODO: pass the peripheral name too? wrap it?
-			if allowOut then
-				for i = builtPipeDestinations.min, builtPipeDestinations.max do
-					if destinations[i] then
-						for _, dest in ipairs(destinations[i]) do
-							local allowin, inLimit = dest.filter(fluid) -- TODO: pass the peripheral name too? wrap it?
-							if allowin then
-								local limit = (inLimit or outLimit) and math.min(inLimit or math.huge, outLimit or math.huge)
-								limit = limit and math.max(limit, 0)
-								source.pushFluid(dest.name, limit, fluid.name)
+		for sourceIndex = sources.min, sources.max do
+			for _, source in ipairs(sources[sourceIndex]) do
+				for tank, fluid in pairs(peripheral.call(source.name, "tanks")) do
+					local allowOut, outLimit = source.filter(fluid, tank, source.name)
+					if allowOut then
+						for destinationIndex = destinations.min, destinations.max do
+							if destinations[destinationIndex] then
+								for _, destination in ipairs(destinations[destinationIndex]) do
+									local allowin, inLimit = destination.filter(fluid, nil, destination.name)
+									if allowin then
+										local limit = (inLimit or outLimit) and math.min(inLimit or math.huge, outLimit or math.huge)
+										limit = limit and math.max(limit, 0)
+
+										if (not limit) or limit > 0 then
+											peripheral.call(source.name, "pushFluid", destination.name, limit, fluid.name)
+										end
+									end
+								end
 							end
 						end
 					end
@@ -73,9 +127,22 @@ local function buildPipe(pipe)
 	return builtPipe
 end
 
-local function newPipe(sourceInventory)
-	expect(1, sourceInventory, "string")
-	local pipe = {_backingTable = {sourceName = sourceInventory, destinations = {}}}
+
+
+
+local function newPipe()
+	local pipe = {_backingTable = {sources = {}, destinations = {}}}
+
+	function pipe.addSource(sourceInventory)
+		expect(1, sourceInventory, "string")
+		return addSource(pipe, sourceInventory)
+	end
+
+	function pipe.removeSource(sourceInventory)
+		expect(1, sourceInventory, "string")
+		pipe._backingTable.sources[sourceInventory] = nil
+		return pipe
+	end
 
 	function pipe.addDestination(destinationinventory)
 		expect(1, destinationinventory, "string")
@@ -88,21 +155,12 @@ local function newPipe(sourceInventory)
 		return pipe
 	end
 
-	function pipe.setFilter(func)
-		expect(1, func, "function", "nil")
-		pipe._backingTable.filter = func
-		return pipe
-	end
-
 	function pipe.build()
 		return buildPipe(pipe)
 	end
 
 	return pipe
 end
-
-
-
 
 return {
 	newPipe = newPipe,

@@ -1,12 +1,15 @@
 local fluidPipe = require("lupus590.fluid_pipe")
 
-local pipe = fluidPipe.newPipe("cookingforblockheads:sink_0") -- this is the source inventory
+local pipe = fluidPipe.newPipe()
+
+pipe.AddSource("cookingforblockheads:sink_0") -- this is the source inventory
 
 -- filters and priorities are still a thing, see the item pipe demo for details
 -- output filter is filter(fluid, tank)
 -- input filter is filter(fluid)
 -- fluid is { amount, name }
 -- tank is the number id of the tank
+-- See the item pipe demo for more info
 
 pipe.addDestination("powah:thermo_gen_0")
 
