@@ -51,8 +51,8 @@ local function buildDestinations(pipeBackingTable, builtPipe)
 		currentPriorityDestinations.n = currentPriorityDestinations.n + 1
 		currentPriorityDestinations[currentPriorityDestinations.n] = {name = v.name, filter = v.filter or emptyFilter}
 
-		builtPipeDestinations.min = builtPipeDestinations.min and math.min(builtPipeDestinations.min or 0, priority)
-		builtPipeDestinations.max = builtPipeDestinations.max and math.max(builtPipeDestinations.max or 0, priority)
+		builtPipeDestinations.min = math.min(builtPipeDestinations.min or 0, priority)
+		builtPipeDestinations.max = math.max(builtPipeDestinations.max or 0, priority)
 	end
 end
 
@@ -66,8 +66,8 @@ local function buildSources(pipeBackingTable, builtPipe)
 		currentPrioritySources.n = currentPrioritySources.n + 1
 		currentPrioritySources[currentPrioritySources.n] = {name = v.name, filter = v.filter or emptyFilter}
 
-		builtPipeSources.min = builtPipeSources.min and math.min(builtPipeSources.min or 0, priority)
-		builtPipeSources.max = builtPipeSources.max and math.max(builtPipeSources.max or 0, priority)
+		builtPipeSources.min = math.min(builtPipeSources.min or 0, priority)
+		builtPipeSources.max = math.max(builtPipeSources.max or 0, priority)
 	end
 end
 
