@@ -7,7 +7,7 @@ end
 
 local function addFilterAndPrioritySetters(sourceOrDestination)
 	function sourceOrDestination.setFilter(func)
-        expect(1, func, "function")
+        expect(1, func, "function", "nil")
 			sourceOrDestination._backingTable.filter = func or emptyFilter
         return sourceOrDestination
     end
