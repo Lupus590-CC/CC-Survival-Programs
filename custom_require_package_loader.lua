@@ -22,12 +22,13 @@ package.loaders[#package.loaders + 1] = function(name)
     end
 
     local rootUrl = "https://raw.githubusercontent.com/Lupus590-CC/CC-Survival-Programs/master/assets/computercraft/lua/rom/modules/"
+    local cacheBuster = "?cb="..os.epoch("utc")
 
     local downloadErrors = {n=0}
     for _, path in ipairs(paths) do
         local localPath = localPathRoot .. path .. name
         if not fs.exists(localPath) then
-            local url = rootUrl .. path .. "lupus590/" .. name
+            local url = rootUrl .. path .. "lupus590/" .. name .. cacheBuster
             local request, err = http.get(url)
             if request then
                 io.open(localPath, "w"):write(request.readAll()):close()
@@ -45,7 +46,6 @@ package.loaders[#package.loaders + 1] = function(name)
             else
                 return nil, err
             end
-		-- else we probably got download errors which we will be returning below
         end
     end
     return nil, table.concat(downloadErrors, "\n")
