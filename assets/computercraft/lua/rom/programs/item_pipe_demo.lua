@@ -21,7 +21,7 @@ pipe.addDestination("minecraft:chest_55").setPriority(1) -- lower numbers go ear
 local builtPipe = pipe.build()
 
 while true do
-    builtPipe.tick() -- go through the source once attempting to move the items
+    builtPipe.tick() -- go through each source once attempting to move the items
     sleep(1)
 end
 
