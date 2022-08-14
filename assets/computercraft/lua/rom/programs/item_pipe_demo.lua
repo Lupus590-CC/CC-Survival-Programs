@@ -1,13 +1,13 @@
 local itemPipe = require("lupus590.item_pipe")
 
-local pipe = itemPipe.newPipe("minecraft:chest_57") -- this is the source inventory
+local pipe = itemPipe.newPipe()
 
-pipe.setFilter(function (item, slot) -- item is from inv.list(), slot is the slot number that the item is in
+pipe.addSource("minecraft:chest_57").setFilter(function (item, slot, name) -- item is from inv.list(), slot is the slot number that the item is in, name is the peripheral name of the chest that the filter is on this can be useful when filters are shared for multipel inventories
     local allowIn, limit = true, 5 -- we can prevent things being extracted and how many are
     return allowIn, limit
-end)
+end).setPriority(1) -- sources also have priorities, lower priorities are extracted first
 
-pipe.addDestination("minecraft:chest_56").setFilter(function(item) -- unlike the ouput filter input doesn't get slot info
+pipe.addDestination("minecraft:chest_56").setFilter(function(item, _, name) -- unlike the output filter input doesn't get slot info, _ is always nil allows for input filters to also be output filters, name is the peripheral name of the chest tat the filter is on
     if item.name == "minecraft:cobblestone" then
 	    local allowIn, limit, slot = true, 1, 5 -- slot is the destination slot if the item gets moved
   	    return allowIn, limit, slot -- if the source also has a limit then the lower is used
