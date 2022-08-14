@@ -92,6 +92,7 @@ local function buildPipe(pipe)
 		local sources = builtPipe._backingTable.sources
 		local destinations = builtPipe._backingTable.destinations
 
+		print("sources: " .. sources.min .. " to " .. sources.max)
 		for sourceIndex = sources.min, sources.max do
 			for _, source in ipairs(sources[sourceIndex]) do
 				for slot, item in pairs(sources.list()) do
