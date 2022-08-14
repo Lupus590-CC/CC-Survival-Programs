@@ -24,7 +24,7 @@ local function addSource(pipe, sourceinventory)
 
     addFilterAndPrioritySetters(source)
 
-    pipe._backingTable.destinations[sourceinventory] = source._backingTable
+    pipe._backingTable.sources[sourceinventory] = source._backingTable
 
     return source
 end
@@ -43,6 +43,9 @@ end
 -- TODO: duplicte code
 local function buildDestinations(pipeBackingTable, builtPipe)
 	local builtPipeDestinations = builtPipe._backingTable.destinations
+	if (not pipeBackingTable.destinations) or (not next(pipeBackingTable.destinations)) then
+		error("No destinations for pipe", 4)
+	end
 	for _, v in pairs(pipeBackingTable.destinations) do
 		local priority = v.priority or 0
 		builtPipeDestinations[priority] = builtPipeDestinations[priority] or {n = 0}
@@ -58,6 +61,9 @@ end
 
 local function buildSources(pipeBackingTable, builtPipe)
 	local builtPipeSources = builtPipe._backingTable.sources
+	if (not pipeBackingTable.sources) or (not next(pipeBackingTable.sources)) then
+		error("No Sources for pipe", 4)
+	end
 	for _, v in pairs(pipeBackingTable.sources) do
 		local priority = v.priority or 0
 		builtPipeSources[priority] = builtPipeSources[priority] or {n = 0}
@@ -92,10 +98,9 @@ local function buildPipe(pipe)
 		local sources = builtPipe._backingTable.sources
 		local destinations = builtPipe._backingTable.destinations
 
-		print("sources: " .. sources.min .. " to " .. sources.max)
 		for sourceIndex = sources.min, sources.max do
 			for _, source in ipairs(sources[sourceIndex]) do
-				for slot, item in pairs(sources.list()) do
+				for slot, item in pairs(peripheral.call(source.name, "list")) do
 					local allowOut, outLimit = source.filter(item, slot, source.name)
 					if allowOut then
 						for destinationIndex = destinations.min, destinations.max do
