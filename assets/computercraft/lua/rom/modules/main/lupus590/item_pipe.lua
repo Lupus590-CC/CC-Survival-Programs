@@ -32,7 +32,7 @@ end
 local function addDestination(pipe, destinationinventory)
     local destination = {_backingTable = {name = destinationinventory}}
 
-    addFilterAndPrioritySetters(destination))
+    addFilterAndPrioritySetters(destination)
 
     pipe._backingTable.destinations[destinationinventory] = destination._backingTable
 
