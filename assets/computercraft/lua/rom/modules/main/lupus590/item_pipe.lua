@@ -111,7 +111,9 @@ local function buildPipe(pipe)
 										local limit = (inLimit or outLimit) and math.min(inLimit or math.huge, outLimit or math.huge)
 										limit = limit and math.max(limit, 0)
 
-										peripheral.call(source.name, "pushItems", destination.name, slot, limit, destSlot)
+										if limit > 0 then
+											peripheral.call(source.name, "pushItems", destination.name, slot, limit, destSlot)
+										end
 									end
 								end
 							end
