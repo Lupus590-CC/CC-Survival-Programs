@@ -1,4 +1,5 @@
 -- TODO: better arg checking (valid peripherals etc.) and code cleanup
+-- TODO: this is extreamly simular to fluid_pipe, is there a way to make them one codebase?
 local expect = require("cc.expect").expect
 
 local function emptyFilter()
