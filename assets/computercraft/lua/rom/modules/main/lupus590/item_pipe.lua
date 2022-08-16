@@ -102,8 +102,8 @@ local function buildPipe(pipe)
 		for sourceIndex = sources.min, sources.max do
 			if sources[sourceIndex] then
 				for _, source in ipairs(sources[sourceIndex]) do
-					for slot, item in pairs(peripheral.call(source.name, "list")) do
-						local allowOut, outLimit = source.filter(item, slot, source.name)
+					for sourceSlot, item in pairs(peripheral.call(source.name, "list")) do
+						local allowOut, outLimit = source.filter(item, sourceSlot, source.name)
 						if allowOut then
 							for destinationIndex = destinations.min, destinations.max do
 								if destinations[destinationIndex] then
@@ -114,7 +114,7 @@ local function buildPipe(pipe)
 											limit = limit and math.max(limit, 0)
 
 											if (not limit) or limit > 0 then
-												peripheral.call(source.name, "pushItems", destination.name, slot, limit, destSlot)
+												peripheral.call(source.name, "pushItems", destination.name, sourceSlot, limit, destSlot)
 											end
 										end
 									end
