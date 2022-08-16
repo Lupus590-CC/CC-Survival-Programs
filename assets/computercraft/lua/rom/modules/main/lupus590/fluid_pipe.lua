@@ -100,20 +100,22 @@ local function buildPipe(pipe)
 		local destinations = builtPipe._backingTable.destinations
 
 		for sourceIndex = sources.min, sources.max do
-			for _, source in ipairs(sources[sourceIndex]) do
-				for tank, fluid in pairs(peripheral.call(source.name, "tanks")) do
-					local allowOut, outLimit = source.filter(fluid, tank, source.name)
-					if allowOut then
-						for destinationIndex = destinations.min, destinations.max do
-							if destinations[destinationIndex] then
-								for _, destination in ipairs(destinations[destinationIndex]) do
-									local allowin, inLimit = destination.filter(fluid, nil, destination.name)
-									if allowin then
-										local limit = (inLimit or outLimit) and math.min(inLimit or math.huge, outLimit or math.huge)
-										limit = limit and math.max(limit, 0)
+			if sources[sourceIndex] then
+				for _, source in ipairs(sources[sourceIndex]) do
+					for tank, fluid in pairs(peripheral.call(source.name, "tanks")) do
+						local allowOut, outLimit = source.filter(fluid, tank, source.name)
+						if allowOut then
+							for destinationIndex = destinations.min, destinations.max do
+								if destinations[destinationIndex] then
+									for _, destination in ipairs(destinations[destinationIndex]) do
+										local allowin, inLimit = destination.filter(fluid, nil, destination.name)
+										if allowin then
+											local limit = (inLimit or outLimit) and math.min(inLimit or math.huge, outLimit or math.huge)
+											limit = limit and math.max(limit, 0)
 
-										if (not limit) or limit > 0 then
-											peripheral.call(source.name, "pushFluid", destination.name, limit, fluid.name)
+											if (not limit) or limit > 0 then
+												peripheral.call(source.name, "pushFluid", destination.name, limit, fluid.name)
+											end
 										end
 									end
 								end

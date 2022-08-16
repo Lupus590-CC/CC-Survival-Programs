@@ -100,20 +100,22 @@ local function buildPipe(pipe)
 		local destinations = builtPipe._backingTable.destinations
 
 		for sourceIndex = sources.min, sources.max do
-			for _, source in ipairs(sources[sourceIndex]) do
-				for slot, item in pairs(peripheral.call(source.name, "list")) do
-					local allowOut, outLimit = source.filter(item, slot, source.name)
-					if allowOut then
-						for destinationIndex = destinations.min, destinations.max do
-							if destinations[destinationIndex] then
-								for _, destination in ipairs(destinations[destinationIndex]) do
-									local allowin, inLimit, destSlot = destination.filter(item, nil, destination.name)
-									if allowin then
-										local limit = (inLimit or outLimit) and math.min(inLimit or math.huge, outLimit or math.huge)
-										limit = limit and math.max(limit, 0)
+			if sources[sourceIndex] then
+				for _, source in ipairs(sources[sourceIndex]) do
+					for slot, item in pairs(peripheral.call(source.name, "list")) do
+						local allowOut, outLimit = source.filter(item, slot, source.name)
+						if allowOut then
+							for destinationIndex = destinations.min, destinations.max do
+								if destinations[destinationIndex] then
+									for _, destination in ipairs(destinations[destinationIndex]) do
+										local allowin, inLimit, destSlot = destination.filter(item, nil, destination.name)
+										if allowin then
+											local limit = (inLimit or outLimit) and math.min(inLimit or math.huge, outLimit or math.huge)
+											limit = limit and math.max(limit, 0)
 
-										if (not limit) or limit > 0 then
-											peripheral.call(source.name, "pushItems", destination.name, slot, limit, destSlot)
+											if (not limit) or limit > 0 then
+												peripheral.call(source.name, "pushItems", destination.name, slot, limit, destSlot)
+											end
 										end
 									end
 								end
