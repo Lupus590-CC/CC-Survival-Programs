@@ -16,7 +16,7 @@ pipe.addDestination("powah:thermo_gen_0")
 local builtPipe = pipe.build()
 
 while true do
-    builtPipe.tick() -- go through the source once attempting to move the fluids
+    builtPipe.tick() -- go through each source once attempting to move the fluids
     sleep(1)
 end
 
