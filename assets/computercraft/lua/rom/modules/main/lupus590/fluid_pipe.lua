@@ -99,15 +99,15 @@ local function buildPipe(pipe)
 		local sources = builtPipe._backingTable.sources
 		local destinations = builtPipe._backingTable.destinations
 
-		for sourceIndex = sources.min, sources.max do
-			if sources[sourceIndex] then
-				for _, source in ipairs(sources[sourceIndex]) do
+		for sourcePriorityLevel = sources.min, sources.max do
+			if sources[sourcePriorityLevel] then
+				for _, source in ipairs(sources[sourcePriorityLevel]) do
 					for tank, fluid in pairs(peripheral.call(source.name, "tanks")) do
 						local allowOut, outLimit = source.filter(fluid, tank, source.name)
 						if allowOut then
-							for destinationIndex = destinations.min, destinations.max do
-								if destinations[destinationIndex] then
-									for _, destination in ipairs(destinations[destinationIndex]) do
+							for destinationPriorityLevel = destinations.min, destinations.max do
+								if destinations[destinationPriorityLevel] then
+									for _, destination in ipairs(destinations[destinationPriorityLevel]) do
 										local allowin, inLimit = destination.filter(fluid, nil, destination.name)
 										if allowin then
 											local limit = (inLimit or outLimit) and math.min(inLimit or math.huge, outLimit or math.huge)
