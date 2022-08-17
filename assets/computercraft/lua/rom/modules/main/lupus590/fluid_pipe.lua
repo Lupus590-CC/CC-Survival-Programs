@@ -138,6 +138,9 @@ local function newPipe()
 
 	function pipe.addSource(sourceInventory)
 		expect(1, sourceInventory, "string")
+		if pipe._backingTable.sources[sourceInventory] then
+			error("Sources can only be in the network once", 2)
+		end
 		return addSource(pipe, sourceInventory)
 	end
 
@@ -149,6 +152,9 @@ local function newPipe()
 
 	function pipe.addDestination(destinationinventory)
 		expect(1, destinationinventory, "string")
+		if pipe._backingTable.destinations[destinationinventory] then
+			error("Destinations can only be in the network once", 2)
+		end
 		return addDestination(pipe, destinationinventory)
 	end
 
