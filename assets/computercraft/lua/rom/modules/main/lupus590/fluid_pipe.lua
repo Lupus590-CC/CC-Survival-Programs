@@ -2,7 +2,7 @@
 -- TODO: this is extreamly simular to item_pipe, is there a way to make them one codebase?
 local expect = require("cc.expect").expect
 
-local function emptyFilter()
+local function emptyFilter(_fluid, _tank, _peripheralName)
 	return true
 end
 
