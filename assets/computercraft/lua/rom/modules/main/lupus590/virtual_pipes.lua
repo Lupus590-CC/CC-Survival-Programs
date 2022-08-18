@@ -205,7 +205,7 @@ local function buildFluidPipe(pipe)
 		for sourcePriorityLevel = sources.min, sources.max do
 			if sources[sourcePriorityLevel] then
 				for _, source in ipairs(sources[sourcePriorityLevel]) do
-					local ok, tanks = pcall(peripheral.call, source.name, "list")
+					local ok, tanks = pcall(peripheral.call, source.name, "tanks")
 					if not ok then
 						error("Peripheral `"..source.name.."` disconnected or doesn't exist.", 0)
 					end
