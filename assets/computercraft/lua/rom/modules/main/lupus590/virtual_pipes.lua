@@ -105,7 +105,7 @@ local function buildItemPipe(pipe)
 				for _, source in ipairs(sources[sourcePriorityLevel]) do
 					local ok, list = pcall(peripheral.call, source.name, "list")
 					if not ok then
-						error("Peripheral `"..source.name.."` disconnected or doesn't exist.", 2)
+						error("Peripheral `"..source.name.."` disconnected or doesn't exist.", 0)
 					end
 					for sourceSlot, item in pairs(list) do
 						local allowOut, outLimit = source.filter(item, sourceSlot, source.name)
@@ -121,7 +121,7 @@ local function buildItemPipe(pipe)
 											if (not limit) or limit > 0 then
 												local ok, _numItemsMoved = pcall(peripheral.call, source.name, "pushItems", destination.name, sourceSlot, limit, destSlot)
 												if not ok then
-													error("Peripheral `"..source.name.."` or peripheral `"..destination.name.."` disconnected or doesn't exist.", 2)
+													error("Peripheral `"..source.name.."` or peripheral `"..destination.name.."` disconnected or doesn't exist.", 0)
 												end
 											end
 										end
@@ -203,7 +203,7 @@ local function buildFluidPipe(pipe)
 				for _, source in ipairs(sources[sourcePriorityLevel]) do
 					local ok, tanks = pcall(peripheral.call, source.name, "list")
 					if not ok then
-						error("Peripheral `"..source.name.."` disconnected or doesn't exist.", 2)
+						error("Peripheral `"..source.name.."` disconnected or doesn't exist.", 0)
 					end
 					for tank, fluid in pairs(tanks) do
 						local allowOut, outLimit = source.filter(fluid, tank, source.name)
@@ -219,7 +219,7 @@ local function buildFluidPipe(pipe)
 											if (not limit) or limit > 0 then
 												local ok, _quantFluidMoved = pcall(peripheral.call, source.name, "pushFluid", destination.name, limit, fluid.name)
 												if not ok then
-													error("Peripheral `"..source.name.."` or peripheral `"..destination.name.."` disconnected or doesn't exist.", 2)
+													error("Peripheral `"..source.name.."` or peripheral `"..destination.name.."` disconnected or doesn't exist.", 0)
 												end
 											end
 										end
