@@ -1,4 +1,4 @@
--- TODO: better arg checking (valid peripherals etc.) and code cleanup
+-- TODO: code cleanup
 local expect = require("cc.expect").expect
 
 local function emptyFilter(_itemOrFluid, _slotOrTank, _peripheralName)
@@ -7,6 +7,10 @@ local function emptyFilter(_itemOrFluid, _slotOrTank, _peripheralName)
 end
 
 local function addFilterAndPrioritySetters(sourceOrDestination)
+	if not peripheral.isPresent(sourceOrDestination._backingTable.name) then
+		error("Peripheral `"..sourceOrDestination._backingTable.name.."` could not be found.", 3)
+	end
+
 	function sourceOrDestination.setFilter(func)
         expect(1, func, "function", "nil")
 			sourceOrDestination._backingTable.filter = func or emptyFilter
