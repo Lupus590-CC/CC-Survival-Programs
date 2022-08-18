@@ -1,6 +1,6 @@
-local fluidPipe = require("lupus590.fluid_pipe")
+local virtualPipes = require("lupus590.virtual_pipes")
 
-local pipe = fluidPipe.newPipe()
+local pipe = virtualPipes.newFluidPipe()
 
 pipe.AddSource("cookingforblockheads:sink_0") -- this is the source inventory
 

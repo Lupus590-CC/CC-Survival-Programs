@@ -1,6 +1,6 @@
-local itemPipe = require("lupus590.item_pipe")
+local virtualpipes = require("lupus590.virtual_pipes")
 
-local pipe = itemPipe.newPipe()
+local pipe = virtualpipes.newItemPipe()
 
 pipe.addSource("minecraft:chest_57").setFilter(function (item, slot, name) -- item is from inv.list(), slot is the slot number that the item is in, name is the peripheral name of the chest that the filter is on this can be useful when filters are shared for multiple inventories
     local allowIn, limit = true, 5 -- we can prevent things being extracted and how many are
