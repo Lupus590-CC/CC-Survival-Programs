@@ -103,7 +103,11 @@ local function buildItemPipe(pipe)
 		for sourcePriorityLevel = sources.min, sources.max do
 			if sources[sourcePriorityLevel] then
 				for _, source in ipairs(sources[sourcePriorityLevel]) do
-					for sourceSlot, item in pairs(peripheral.call(source.name, "list")) do
+					local ok, list = pcall(peripheral.call, source.name, "list")
+					if not ok then
+						error("Peripheral `"..source.name.."` disconnected or doesn't exist.", 2)
+					end
+					for sourceSlot, item in pairs(list) do
 						local allowOut, outLimit = source.filter(item, sourceSlot, source.name)
 						if allowOut then
 							for destinationPriorityLevel = destinations.min, destinations.max do
@@ -115,7 +119,10 @@ local function buildItemPipe(pipe)
 											limit = limit and math.max(limit, 0)
 
 											if (not limit) or limit > 0 then
-												peripheral.call(source.name, "pushItems", destination.name, sourceSlot, limit, destSlot)
+												local ok, _numItemsMoved = pcall(peripheral.call, source.name, "pushItems", destination.name, sourceSlot, limit, destSlot)
+												if not ok then
+													error("Peripheral `"..source.name.."` or peripheral `"..destination.name.."` disconnected or doesn't exist.", 2)
+												end
 											end
 										end
 									end
@@ -194,7 +201,11 @@ local function buildFluidPipe(pipe)
 		for sourcePriorityLevel = sources.min, sources.max do
 			if sources[sourcePriorityLevel] then
 				for _, source in ipairs(sources[sourcePriorityLevel]) do
-					for tank, fluid in pairs(peripheral.call(source.name, "tanks")) do
+					local ok, tanks = pcall(peripheral.call, source.name, "list")
+					if not ok then
+						error("Peripheral `"..source.name.."` disconnected or doesn't exist.", 2)
+					end
+					for tank, fluid in pairs(tanks) do
 						local allowOut, outLimit = source.filter(fluid, tank, source.name)
 						if allowOut then
 							for destinationPriorityLevel = destinations.min, destinations.max do
@@ -206,7 +217,10 @@ local function buildFluidPipe(pipe)
 											limit = limit and math.max(limit, 0)
 
 											if (not limit) or limit > 0 then
-												peripheral.call(source.name, "pushFluid", destination.name, limit, fluid.name)
+												local ok, _quantFluidMoved = pcall(peripheral.call, source.name, "pushFluid", destination.name, limit, fluid.name))
+												if not ok then
+													error("Peripheral `"..source.name.."` or peripheral `"..destination.name.."` disconnected or doesn't exist.", 2)
+												end
 											end
 										end
 									end
