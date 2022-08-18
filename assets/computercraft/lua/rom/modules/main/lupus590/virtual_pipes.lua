@@ -217,7 +217,7 @@ local function buildFluidPipe(pipe)
 											limit = limit and math.max(limit, 0)
 
 											if (not limit) or limit > 0 then
-												local ok, _quantFluidMoved = pcall(peripheral.call, source.name, "pushFluid", destination.name, limit, fluid.name))
+												local ok, _quantFluidMoved = pcall(peripheral.call, source.name, "pushFluid", destination.name, limit, fluid.name)
 												if not ok then
 													error("Peripheral `"..source.name.."` or peripheral `"..destination.name.."` disconnected or doesn't exist.", 2)
 												end
