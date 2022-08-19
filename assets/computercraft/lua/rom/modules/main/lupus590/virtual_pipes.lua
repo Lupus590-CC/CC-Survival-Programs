@@ -1,4 +1,6 @@
 -- TODO: code cleanup
+-- TODO: use metatable for pipe building and pipes themselves?
+-- TODO: have a var in the pipe to tell it what type it is, could help with dupe code
 local expect = require("cc.expect").expect
 
 local function emptyFilter(_itemOrFluid, _slotOrTank, _peripheralName)
