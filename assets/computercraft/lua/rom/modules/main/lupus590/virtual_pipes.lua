@@ -82,6 +82,59 @@ local function buildSources(pipeBackingTable, builtPipe)
 	buildSourceDestination(pipeBackingTable, builtPipeSources)
 end
 
+local function tickBuiltPipe(builtPipe, pipeType) -- TODO: return true if items/fluids moved (client programs can then sleep longer if we didn't move anything)
+	if pipeType ~= "item" and pipeType ~= "fluid" then
+		error("Invalid pipe type")
+	end
+
+	local sources = builtPipe._backingTable.sources
+	local destinations = builtPipe._backingTable.destinations
+
+	for sourcePriorityLevel = sources.min, sources.max do
+		if sources[sourcePriorityLevel] then
+			for _, source in ipairs(sources[sourcePriorityLevel]) do
+				local ok, listOrTanks
+				if pipeType == "item" then
+					ok, listOrTanks = pcall(peripheral.call, source.name, "list")
+				elseif pipeType == "fluid" then
+					ok, listOrTanks = pcall(peripheral.call, source.name, "tanks")
+				end
+				if not ok then
+					error("Peripheral `"..source.name.."` disconnected or doesn't exist.", 0)
+				end
+				for slotOrTank, itemOrFluid in pairs(listOrTanks) do
+					local allowOut, outLimit = source.filter(itemOrFluid, slotOrTank, source.name)
+					if allowOut then
+						for destinationPriorityLevel = destinations.min, destinations.max do
+							if destinations[destinationPriorityLevel] then
+								for _, destination in ipairs(destinations[destinationPriorityLevel]) do
+									local allowin, inLimit, destSlot = destination.filter(itemOrFluid, nil, destination.name)
+									if allowin then
+										local limit = (inLimit or outLimit) and math.min(inLimit or math.huge, outLimit or math.huge)
+										limit = limit and math.max(limit, 0)
+
+										if (not limit) or limit > 0 then
+											local ok, _amountMoved
+											if pipeType == "item" then
+												ok, _amountMoved = pcall(peripheral.call, source.name, "pushItems", destination.name, slotOrTank, limit, destSlot)
+											elseif pipeType == "fluid" then
+												ok, _amountMoved =  pcall(peripheral.call, source.name, "pushFluid", destination.name, limit, itemOrFluid.name)
+											end
+											if not ok then
+												error("Peripheral `"..source.name.."` or peripheral `"..destination.name.."` disconnected or doesn't exist.", 0)
+											end
+										end
+									end
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
 local function buildPipe(pipe)
 	local pipeBackingTable = pipe._backingTable
 	--[[ {
@@ -101,47 +154,11 @@ local function buildPipe(pipe)
 	return builtPipe
 end
 
--- TODO: duplicate code buildFluidPipe
 local function buildItemPipe(pipe)
 	local builtPipe = buildPipe(pipe)
 
-	function builtPipe.tick() -- TODO: return true if items moved (client programs can then sleep longer if we didn't move anything)
-		local sources = builtPipe._backingTable.sources
-		local destinations = builtPipe._backingTable.destinations
-
-		for sourcePriorityLevel = sources.min, sources.max do
-			if sources[sourcePriorityLevel] then
-				for _, source in ipairs(sources[sourcePriorityLevel]) do
-					local ok, list = pcall(peripheral.call, source.name, "list")
-					if not ok then
-						error("Peripheral `"..source.name.."` disconnected or doesn't exist.", 0)
-					end
-					for sourceSlot, item in pairs(list) do
-						local allowOut, outLimit = source.filter(item, sourceSlot, source.name)
-						if allowOut then
-							for destinationPriorityLevel = destinations.min, destinations.max do
-								if destinations[destinationPriorityLevel] then
-									for _, destination in ipairs(destinations[destinationPriorityLevel]) do
-										local allowin, inLimit, destSlot = destination.filter(item, nil, destination.name)
-										if allowin then
-											local limit = (inLimit or outLimit) and math.min(inLimit or math.huge, outLimit or math.huge)
-											limit = limit and math.max(limit, 0)
-
-											if (not limit) or limit > 0 then
-												local ok, _numItemsMoved = pcall(peripheral.call, source.name, "pushItems", destination.name, sourceSlot, limit, destSlot)
-												if not ok then
-													error("Peripheral `"..source.name.."` or peripheral `"..destination.name.."` disconnected or doesn't exist.", 0)
-												end
-											end
-										end
-									end
-								end
-							end
-						end
-					end
-				end
-			end
-		end
+	function builtPipe.tick()
+		return tickBuiltPipe(builtPipe, "item")
 	end
 
 	return builtPipe
@@ -150,43 +167,8 @@ end
 local function buildFluidPipe(pipe)
 	local builtPipe = buildPipe(pipe)
 
-	function builtPipe.tick() -- TODO: return true if items moved (client programs can then sleep longer if we didn't move anything)
-		local sources = builtPipe._backingTable.sources
-		local destinations = builtPipe._backingTable.destinations
-
-		for sourcePriorityLevel = sources.min, sources.max do
-			if sources[sourcePriorityLevel] then
-				for _, source in ipairs(sources[sourcePriorityLevel]) do
-					local ok, tanks = pcall(peripheral.call, source.name, "tanks")
-					if not ok then
-						error("Peripheral `"..source.name.."` disconnected or doesn't exist.", 0)
-					end
-					for tank, fluid in pairs(tanks) do
-						local allowOut, outLimit = source.filter(fluid, tank, source.name)
-						if allowOut then
-							for destinationPriorityLevel = destinations.min, destinations.max do
-								if destinations[destinationPriorityLevel] then
-									for _, destination in ipairs(destinations[destinationPriorityLevel]) do
-										local allowin, inLimit = destination.filter(fluid, nil, destination.name)
-										if allowin then
-											local limit = (inLimit or outLimit) and math.min(inLimit or math.huge, outLimit or math.huge)
-											limit = limit and math.max(limit, 0)
-
-											if (not limit) or limit > 0 then
-												local ok, _quantFluidMoved = pcall(peripheral.call, source.name, "pushFluid", destination.name, limit, fluid.name)
-												if not ok then
-													error("Peripheral `"..source.name.."` or peripheral `"..destination.name.."` disconnected or doesn't exist.", 0)
-												end
-											end
-										end
-									end
-								end
-							end
-						end
-					end
-				end
-			end
-		end
+	function builtPipe.tick()
+		return tickBuiltPipe(builtPipe, "fluid")
 	end
 
 	return builtPipe
