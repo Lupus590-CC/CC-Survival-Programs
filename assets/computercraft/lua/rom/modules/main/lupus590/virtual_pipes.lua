@@ -82,6 +82,7 @@ local function buildSources(pipeBackingTable, builtPipe)
 	buildSourceDestination(pipeBackingTable, builtPipeSources)
 end
 
+-- TODO: this is very long
 local function tickBuiltPipe(builtPipe, pipeType) -- TODO: return true if items/fluids moved (client programs can then sleep longer if we didn't move anything)
 	if pipeType ~= "item" and pipeType ~= "fluid" then
 		error("Invalid pipe type")
