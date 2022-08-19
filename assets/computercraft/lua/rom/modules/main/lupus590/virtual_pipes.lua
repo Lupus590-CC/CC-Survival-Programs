@@ -80,8 +80,7 @@ local function buildSources(pipeBackingTable, builtPipe)
 	buildSourceDestination(pipeBackingTable, builtPipeSources)
 end
 
--- TODO: duplicate code buildFluidPipe
-local function buildItemPipe(pipe)
+local function buildPipe(pipe)
 	local pipeBackingTable = pipe._backingTable
 	--[[ {
 		sources = { [name] = { name = ..., filter = ..., prority = ...}},
@@ -97,6 +96,12 @@ local function buildItemPipe(pipe)
 
 	buildDestinations(pipeBackingTable, builtPipe)
 	buildSources(pipeBackingTable, builtPipe)
+	return builtPipe
+end
+
+-- TODO: duplicate code buildFluidPipe
+local function buildItemPipe(pipe)
+	local builtPipe = buildPipe(pipe)
 
 	function builtPipe.tick() -- TODO: return true if items moved (client programs can then sleep longer if we didn't move anything)
 		local sources = builtPipe._backingTable.sources
@@ -141,21 +146,7 @@ local function buildItemPipe(pipe)
 end
 
 local function buildFluidPipe(pipe)
-	local pipeBackingTable = pipe._backingTable
-	--[[ {
-		sources = { [name] = { name = ..., filter = ..., prority = ...}},
-		filter = ...,
-		destinations = { [name] = { name = ..., filter = ..., prority = ...}}
-	} ]]
-
-	local builtPipe = {_backingTable = {sources = {}, destinations = {}}}
-	--[[ {
-		sources = { min = 0, max = 0, [priority] = { [n] = { name = ..., filter = ...}}},
-		destinations = { min = 0, max = 0, [priority] = { [n] = { name = ..., filter = ...}}}
-	} ]]
-
-	buildDestinations(pipeBackingTable, builtPipe)
-	buildSources(pipeBackingTable, builtPipe)
+	local builtPipe = buildPipe(pipe)
 
 	function builtPipe.tick() -- TODO: return true if items moved (client programs can then sleep longer if we didn't move anything)
 		local sources = builtPipe._backingTable.sources
