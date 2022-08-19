@@ -44,42 +44,40 @@ local function addDestination(pipe, destinationinventory)
     return destination
 end
 
-
--- TODO: duplicate code buildSources
-local function buildDestinations(pipeBackingTable, builtPipe)
-	local builtPipeDestinations = builtPipe._backingTable.destinations
-	if (not pipeBackingTable.destinations) or (not next(pipeBackingTable.destinations)) then
-		error("No destinations for pipe", 4)
-	end
+local function buildSourceDestination(pipeBackingTable, builtPipeSourceDestination)
 	for _, v in pairs(pipeBackingTable.destinations) do
 		local priority = v.priority or 0
-		builtPipeDestinations[priority] = builtPipeDestinations[priority] or {n = 0}
+		builtPipeSourceDestination[priority] = builtPipeSourceDestination[priority] or {n = 0}
 
-		local currentPriorityDestinations = builtPipeDestinations[priority]
-		currentPriorityDestinations.n = currentPriorityDestinations.n + 1
-		currentPriorityDestinations[currentPriorityDestinations.n] = {name = v.name, filter = v.filter or emptyFilter}
+		local currentPriorityPipes = builtPipeSourceDestination[priority]
+		currentPriorityPipes.n = currentPriorityPipes.n + 1
+		currentPriorityPipes[currentPriorityPipes.n] = {name = v.name, filter = v.filter or emptyFilter}
 
-		builtPipeDestinations.min = math.min(builtPipeDestinations.min or 0, priority)
-		builtPipeDestinations.max = math.max(builtPipeDestinations.max or 0, priority)
+		builtPipeSourceDestination.min = math.min(builtPipeSourceDestination.min or 0, priority)
+		builtPipeSourceDestination.max = math.max(builtPipeSourceDestination.max or 0, priority)
 	end
 end
 
+local function buildDestinations(pipeBackingTable, builtPipe)
+	if (not pipeBackingTable.destinations) or (not next(pipeBackingTable.destinations)) then
+		error("No destinations for pipe", 4)
+	end
+	builtPipe._backingTable = builtPipe._backingTable or {}
+	builtPipe._backingTable.destinations = builtPipe._backingTable.destinations or {}
+	local builtPipeDestinations = builtPipe._backingTable.destinations
+
+	buildSourceDestination(pipeBackingTable, builtPipeDestinations)
+end
+
 local function buildSources(pipeBackingTable, builtPipe)
-	local builtPipeSources = builtPipe._backingTable.sources
 	if (not pipeBackingTable.sources) or (not next(pipeBackingTable.sources)) then
 		error("No Sources for pipe", 4)
 	end
-	for _, v in pairs(pipeBackingTable.sources) do
-		local priority = v.priority or 0
-		builtPipeSources[priority] = builtPipeSources[priority] or {n = 0}
+	builtPipe._backingTable = builtPipe._backingTable or {}
+	builtPipe._backingTable.sources = builtPipe._backingTable.sources or {}
+	local builtPipeSources = builtPipe._backingTable.sources
 
-		local currentPrioritySources = builtPipeSources[priority]
-		currentPrioritySources.n = currentPrioritySources.n + 1
-		currentPrioritySources[currentPrioritySources.n] = {name = v.name, filter = v.filter or emptyFilter}
-
-		builtPipeSources.min = math.min(builtPipeSources.min or 0, priority)
-		builtPipeSources.max = math.max(builtPipeSources.max or 0, priority)
-	end
+	buildSourceDestination(pipeBackingTable, builtPipeSources)
 end
 
 -- TODO: duplicate code buildFluidPipe
