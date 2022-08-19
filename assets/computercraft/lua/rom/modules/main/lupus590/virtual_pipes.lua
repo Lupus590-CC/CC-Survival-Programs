@@ -192,22 +192,16 @@ local function buildFluidPipe(pipe)
 	return builtPipe
 end
 
--- TODO: duplicate code newFluidPipe
-local function newItemPipe()
+local function newPipe()
 	local pipe = {_backingTable = {sources = {}, destinations = {}}}
 
+	-- TODO: verify that sources and destinations are valid inventories/tanks
 	function pipe.addSource(sourceInventory)
 		expect(1, sourceInventory, "string")
 		if pipe._backingTable.sources[sourceInventory] then
 			error("Sources can only be in the network once", 2)
 		end
 		return addSource(pipe, sourceInventory)
-	end
-
-	function pipe.removeSource(sourceInventory)
-		expect(1, sourceInventory, "string")
-		pipe._backingTable.sources[sourceInventory] = nil
-		return pipe
 	end
 
 	function pipe.addDestination(destinationinventory)
@@ -218,11 +212,23 @@ local function newItemPipe()
 		return addDestination(pipe, destinationinventory)
 	end
 
+	function pipe.removeSource(sourceInventory)
+		expect(1, sourceInventory, "string")
+		pipe._backingTable.sources[sourceInventory] = nil
+		return pipe
+	end
+
 	function pipe.removeDestination(destinationinventory)
 		expect(1, destinationinventory, "string")
 		pipe._backingTable.destinations[destinationinventory] = nil
 		return pipe
 	end
+
+	return pipe
+end
+
+local function newItemPipe()
+	local pipe = newPipe()
 
 	function pipe.build()
 		return buildItemPipe(pipe)
@@ -232,35 +238,7 @@ local function newItemPipe()
 end
 
 local function newFluidPipe()
-	local pipe = {_backingTable = {sources = {}, destinations = {}}}
-
-	function pipe.addSource(sourceInventory)
-		expect(1, sourceInventory, "string")
-		if pipe._backingTable.sources[sourceInventory] then
-			error("Sources can only be in the network once", 2)
-		end
-		return addSource(pipe, sourceInventory)
-	end
-
-	function pipe.removeSource(sourceInventory)
-		expect(1, sourceInventory, "string")
-		pipe._backingTable.sources[sourceInventory] = nil
-		return pipe
-	end
-
-	function pipe.addDestination(destinationinventory)
-		expect(1, destinationinventory, "string")
-		if pipe._backingTable.destinations[destinationinventory] then
-			error("Destinations can only be in the network once", 2)
-		end
-		return addDestination(pipe, destinationinventory)
-	end
-
-	function pipe.removeDestination(destinationinventory)
-		expect(1, destinationinventory, "string")
-		pipe._backingTable.destinations[destinationinventory] = nil
-		return pipe
-	end
+	local pipe = newPipe()
 
 	function pipe.build()
 		return buildFluidPipe(pipe)
