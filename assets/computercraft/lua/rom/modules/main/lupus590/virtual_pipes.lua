@@ -82,7 +82,6 @@ local function buildSources(pipeBackingTable, builtPipe)
 	buildSourceDestination(pipeBackingTable, builtPipeSources)
 end
 
--- TODO: this is very long
 local function tickBuiltPipe(builtPipe, pipeType) -- TODO: return true if items/fluids moved (client programs can then sleep longer if we didn't move anything)
 	if pipeType ~= "item" and pipeType ~= "fluid" then
 		error("Invalid pipe type")
@@ -90,6 +89,32 @@ local function tickBuiltPipe(builtPipe, pipeType) -- TODO: return true if items/
 
 	local sources = builtPipe._backingTable.sources
 	local destinations = builtPipe._backingTable.destinations
+
+	local function processDestinations(itemOrFluid, outLimit, source, slotOrTank)
+		for destinationPriorityLevel = destinations.min, destinations.max do
+			if destinations[destinationPriorityLevel] then
+				for _, destination in ipairs(destinations[destinationPriorityLevel]) do
+					local allowin, inLimit, destSlot = destination.filter(itemOrFluid, nil, destination.name)
+					if allowin then
+						local limit = (inLimit or outLimit) and math.min(inLimit or math.huge, outLimit or math.huge)
+						limit = limit and math.max(limit, 0)
+
+						if (not limit) or limit > 0 then
+							local ok, _amountMoved
+							if pipeType == "item" then
+								ok, _amountMoved = pcall(peripheral.call, source.name, "pushItems", destination.name, slotOrTank, limit, destSlot)
+							elseif pipeType == "fluid" then
+								ok, _amountMoved =  pcall(peripheral.call, source.name, "pushFluid", destination.name, limit, itemOrFluid.name)
+							end
+							if not ok then
+								error("Peripheral `"..source.name.."` or peripheral `"..destination.name.."` disconnected or doesn't exist.", 0)
+							end
+						end
+					end
+				end
+			end
+		end
+	end
 
 	for sourcePriorityLevel = sources.min, sources.max do
 		if sources[sourcePriorityLevel] then
@@ -106,29 +131,7 @@ local function tickBuiltPipe(builtPipe, pipeType) -- TODO: return true if items/
 				for slotOrTank, itemOrFluid in pairs(listOrTanks) do
 					local allowOut, outLimit = source.filter(itemOrFluid, slotOrTank, source.name)
 					if allowOut then
-						for destinationPriorityLevel = destinations.min, destinations.max do
-							if destinations[destinationPriorityLevel] then
-								for _, destination in ipairs(destinations[destinationPriorityLevel]) do
-									local allowin, inLimit, destSlot = destination.filter(itemOrFluid, nil, destination.name)
-									if allowin then
-										local limit = (inLimit or outLimit) and math.min(inLimit or math.huge, outLimit or math.huge)
-										limit = limit and math.max(limit, 0)
-
-										if (not limit) or limit > 0 then
-											local ok, _amountMoved
-											if pipeType == "item" then
-												ok, _amountMoved = pcall(peripheral.call, source.name, "pushItems", destination.name, slotOrTank, limit, destSlot)
-											elseif pipeType == "fluid" then
-												ok, _amountMoved =  pcall(peripheral.call, source.name, "pushFluid", destination.name, limit, itemOrFluid.name)
-											end
-											if not ok then
-												error("Peripheral `"..source.name.."` or peripheral `"..destination.name.."` disconnected or doesn't exist.", 0)
-											end
-										end
-									end
-								end
-							end
-						end
+						processDestinations(itemOrFluid, outLimit, source, slotOrTank)
 					end
 				end
 			end
