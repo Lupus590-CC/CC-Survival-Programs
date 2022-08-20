@@ -29,7 +29,7 @@ jobs:
       - name: Test with pytest
         run: pytest test_src
       
-      - uses: tokusumi/markdown-embed-code@v1.0.0 # technology-studio-forks/markdown-embed-code@v1.1.2 # tokusumi/markdown-embed-code@v1.0.0
+      - uses: technology-studio-forks/markdown-embed-code@v1.1.2
         with:
           markdown: "README.md"
           token: ${{ secrets.GITHUB_TOKEN }}
