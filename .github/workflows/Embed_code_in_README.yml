@@ -20,15 +20,15 @@ on:
 jobs:
   embed-code:
     runs-on: ubuntu-latest
-    steps:
+    steps:    
+      - name: Install GCC
+        uses: egor-tensin/setup-gcc@v1
+
       - uses: actions/checkout@v2
         with:
           persist-credentials: false # otherwise, the token used is the GITHUB_TOKEN, instead of your personal token
           fetch-depth: 0 # otherwise, you will failed to push refs to dest repo
-          
-      - name: Install GCC
-        uses: egor-tensin/setup-gcc@v1
-
+      
       - uses: technology-studio-forks/markdown-embed-code@c56ab99cc5f0e97e25626bd8d30d48c53154fb0f
         with:
           markdown: "README.md"
