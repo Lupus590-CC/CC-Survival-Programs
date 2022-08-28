@@ -1,11 +1,13 @@
 -- TODO: code cleanup
 -- TODO: use metatable for pipe building and pipes themselves?
 -- TODO: have a var in the pipe to tell it what type it is, could help with dupe code
+-- TODO: can we parallel some of the peripheral calls?
 local expect = require("cc.expect").expect
 
 local function emptyFilter(_itemOrFluid, _slotOrTank, _peripheralName)
-	local _limit, _destinationSlot
-	return true, _limit, _destinationSlot
+	local allowTranfer, _limit, _destinationSlot
+	allowTranfer = true
+	return allowTranfer, _limit, _destinationSlot
 end
 
 local function addFilterAndPrioritySetters(sourceOrDestination)
@@ -107,6 +109,8 @@ local function tickBuiltPipe(builtPipe, pipeType) -- TODO: return true if items/
 								ok, _amountMoved =  pcall(peripheral.call, source.name, "pushFluid", destination.name, limit, itemOrFluid.name)
 							end
 							if not ok then
+								-- TODO: we wrongly blame this sometimes if the error is terminated or others probably
+								error(_amountMoved, 0)
 								error("Peripheral `"..source.name.."` or peripheral `"..destination.name.."` disconnected or doesn't exist.", 0)
 							end
 						end
@@ -126,6 +130,8 @@ local function tickBuiltPipe(builtPipe, pipeType) -- TODO: return true if items/
 					ok, listOrTanks = pcall(peripheral.call, source.name, "tanks")
 				end
 				if not ok then
+					-- TODO: we wrongly blame this sometimes if the error is terminated or others probably
+					error(listOrTanks, 0)
 					error("Peripheral `"..source.name.."` disconnected or doesn't exist.", 0)
 				end
 				for slotOrTank, itemOrFluid in pairs(listOrTanks) do
