@@ -101,11 +101,6 @@ local function buildDestinations(pipeBackingTable, builtPipe)
 	builtPipe._backingTable.destinations = builtPipe._backingTable.destinations or {}
 	local builtPipeDestinations = builtPipe._backingTable.destinations
 
-	print("using log with keys")
-	for k in pairs(log) do
-		print(k)
-	end
-
 	log.debug("virtual_pipes.lua: vuilding sources")
 
 	buildSourceDestination(pipeBackingTable.destinations, builtPipeDestinations)
