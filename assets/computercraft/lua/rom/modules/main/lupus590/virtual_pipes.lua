@@ -2,7 +2,28 @@
 -- TODO: use metatable for pipe building and pipes themselves?
 -- TODO: have a var in the pipe to tell it what type it is, could help with dupe code
 -- TODO: can we parallel some of the peripheral calls?
+
 local expect = require("cc.expect").expect
+local pretty = require("cc.pretty")
+local ok, logger = pcall(require, "lupus590.logger")
+local log
+if ok then
+	log = logger.newLoggerConfig()
+		.writeTo().console()
+		.writeTo().filePlainText("virtualPipe.plain.log")
+		.writeTo().fileLuaTable("virtualPipe.lua.log")
+		.minimumLevel(3)
+		.createLogger()
+else
+	log = setmetatable({}, {_index = function() end})
+end
+
+local function setLogger(logger)
+	if logger.createLogger then
+		log = logger.createLogger()
+	end
+	log = logger
+end
 
 local function emptyFilter(_itemOrFluid, _slotOrTank, _peripheralName)
 	local allowTranfer, _limit, _destinationSlot
@@ -12,7 +33,9 @@ end
 
 local function addFilterAndPrioritySetters(sourceOrDestination)
 	if not peripheral.isPresent(sourceOrDestination._backingTable.name) then
-		error("Peripheral `"..sourceOrDestination._backingTable.name.."` could not be found.", 3)
+		local err = "Peripheral `"..sourceOrDestination._backingTable.name.."` could not be found."
+		log.fatal(err)
+		error(err, 3)
 	end
 
 	function sourceOrDestination.setFilter(func)
@@ -48,8 +71,8 @@ local function addDestination(pipe, destinationinventory)
     return destination
 end
 
-local function buildSourceDestination(pipeBackingTable, builtPipeSourceDestination)
-	for _, v in pairs(pipeBackingTable.destinations) do
+local function buildSourceDestination(sourcesDestinations, builtPipeSourceDestination)
+	for _, v in pairs(sourcesDestinations) do
 		local priority = v.priority or 0
 		builtPipeSourceDestination[priority] = builtPipeSourceDestination[priority] or {n = 0}
 
@@ -64,29 +87,39 @@ end
 
 local function buildDestinations(pipeBackingTable, builtPipe)
 	if (not pipeBackingTable.destinations) or (not next(pipeBackingTable.destinations)) then
-		error("No destinations for pipe", 4)
+		local err = "No destinations for pipe"
+		log.fatal(err)
+		error(err, 4)
 	end
 	builtPipe._backingTable = builtPipe._backingTable or {}
 	builtPipe._backingTable.destinations = builtPipe._backingTable.destinations or {}
 	local builtPipeDestinations = builtPipe._backingTable.destinations
 
-	buildSourceDestination(pipeBackingTable, builtPipeDestinations)
+	log.debug("virtual_pipes.lua: vuilding sources")
+
+	buildSourceDestination(pipeBackingTable.destinations, builtPipeDestinations)
 end
 
 local function buildSources(pipeBackingTable, builtPipe)
 	if (not pipeBackingTable.sources) or (not next(pipeBackingTable.sources)) then
-		error("No Sources for pipe", 4)
+		local err = "No Sources for pipe"
+		log.fatal(err)
+		error(err, 4)
 	end
 	builtPipe._backingTable = builtPipe._backingTable or {}
 	builtPipe._backingTable.sources = builtPipe._backingTable.sources or {}
 	local builtPipeSources = builtPipe._backingTable.sources
 
-	buildSourceDestination(pipeBackingTable, builtPipeSources)
+	log.debug("virtual_pipes.lua: vuilding sources")
+
+	buildSourceDestination(pipeBackingTable.sources, builtPipeSources)
 end
 
 local function tickBuiltPipe(builtPipe, pipeType) -- TODO: return true if items/fluids moved (client programs can then sleep longer if we didn't move anything)
 	if pipeType ~= "item" and pipeType ~= "fluid" then
-		error("Invalid pipe type")
+		local err = "Invalid pipe type"
+		log.fatal(err)
+		error(err, 2)
 	end
 
 	local sources = builtPipe._backingTable.sources
@@ -95,8 +128,10 @@ local function tickBuiltPipe(builtPipe, pipeType) -- TODO: return true if items/
 	local function processDestinations(itemOrFluid, outLimit, source, slotOrTank)
 		for destinationPriorityLevel = destinations.min, destinations.max do
 			if destinations[destinationPriorityLevel] then
+				log.debug("virtual_pipes.lua: looping destinations at priority = "..destinationPriorityLevel)
 				for _, destination in ipairs(destinations[destinationPriorityLevel]) do
 					local allowin, inLimit, destSlot = destination.filter(itemOrFluid, nil, destination.name)
+					log.debug(("virtual_pipes.lua: destination filter allowin = %s inLimit = %s destSlot = %s"):format(allowin, inLimit, destSlot))
 					if allowin then
 						local limit = (inLimit or outLimit) and math.min(inLimit or math.huge, outLimit or math.huge)
 						limit = limit and math.max(limit, 0)
@@ -108,10 +143,15 @@ local function tickBuiltPipe(builtPipe, pipeType) -- TODO: return true if items/
 							elseif pipeType == "fluid" then
 								ok, _amountMoved =  pcall(peripheral.call, source.name, "pushFluid", destination.name, limit, itemOrFluid.name)
 							end
+							log.debug("virtual_pipes.lua: moved = ".._amountMoved)
 							if not ok then
 								-- TODO: we wrongly blame this sometimes if the error is terminated or others probably
-								error(_amountMoved, 0)
-								error("Peripheral `"..source.name.."` or peripheral `"..destination.name.."` disconnected or doesn't exist.", 0)
+								local err = _amountMoved
+								log.fatal(err)
+								error(err, 0)
+								err = "Peripheral `"..source.name.."` or peripheral `"..destination.name.."` disconnected or doesn't exist."
+								log.fatal(err)
+								error(err, 0)
 							end
 						end
 					end
@@ -122,7 +162,9 @@ local function tickBuiltPipe(builtPipe, pipeType) -- TODO: return true if items/
 
 	for sourcePriorityLevel = sources.min, sources.max do
 		if sources[sourcePriorityLevel] then
+			log.debug("virtual_pipes.lua: looping sources at priority = "..sourcePriorityLevel)
 			for _, source in ipairs(sources[sourcePriorityLevel]) do
+				log.debug("virtual_pipes.lua: source = "..source.name)
 				local ok, listOrTanks
 				if pipeType == "item" then
 					ok, listOrTanks = pcall(peripheral.call, source.name, "list")
@@ -131,11 +173,20 @@ local function tickBuiltPipe(builtPipe, pipeType) -- TODO: return true if items/
 				end
 				if not ok then
 					-- TODO: we wrongly blame this sometimes if the error is terminated or others probably
-					error(listOrTanks, 0)
-					error("Peripheral `"..source.name.."` disconnected or doesn't exist.", 0)
+					local err = listOrTanks
+					log.fatal(err)
+					error(err, 0)
+					err = "Peripheral `"..source.name.."` disconnected or doesn't exist."
+					log.fatal(err)
+					error(err, 0)
 				end
+
+				log.debug("virtual_pipes.lua: items = "..pretty.render(pretty.pretty(listOrTanks)))
 				for slotOrTank, itemOrFluid in pairs(listOrTanks) do
+					log.debug("virtual_pipes.lua: item/fluid in slot/tank "..slotOrTank)
 					local allowOut, outLimit = source.filter(itemOrFluid, slotOrTank, source.name)
+
+					log.debug(("virtual_pipes.lua: source filter allowOut = %s outLimit = %s"):format(allowOut, outLimit))
 					if allowOut then
 						processDestinations(itemOrFluid, outLimit, source, slotOrTank)
 					end
@@ -191,7 +242,9 @@ local function newPipe()
 	function pipe.addSource(sourceInventory)
 		expect(1, sourceInventory, "string")
 		if pipe._backingTable.sources[sourceInventory] then
-			error("Sources can only be in the network once", 2)
+			local err = "Sources can only be in the network once"
+			log.fatal(err)
+			error(err, 2)
 		end
 		return addSource(pipe, sourceInventory)
 	end
@@ -199,7 +252,9 @@ local function newPipe()
 	function pipe.addDestination(destinationinventory)
 		expect(1, destinationinventory, "string")
 		if pipe._backingTable.destinations[destinationinventory] then
-			error("Destinations can only be in the network once", 2)
+			local err = "Destinations can only be in the network once"
+			log.fatal(err)
+			error(err, 2)
 		end
 		return addDestination(pipe, destinationinventory)
 	end
@@ -242,5 +297,6 @@ end
 return {
 	newItemPipe = newItemPipe,
 	newFluidPipe = newFluidPipe,
+	setLogger = setLogger,
 }
 
