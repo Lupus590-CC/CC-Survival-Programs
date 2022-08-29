@@ -7,6 +7,7 @@ local expect = require("cc.expect")
 local pretty = require("cc.pretty")
 local ok, logger = pcall(require, "lupus590.logger")
 local log
+local nullLogger = setmetatable({}, {_index = function() end})
 if ok then
 	log = logger.newLoggerConfig()
 		.writeTo().console()
@@ -17,7 +18,7 @@ if ok then
 
 	logger = nil
 else
-	log = setmetatable({}, {_index = function() end})
+	log = nullLogger
 end
 
 local function setLogger(newLogger)
@@ -26,7 +27,7 @@ local function setLogger(newLogger)
 		expect.field(newLogger, "createLogger", "function")
 		log = newLogger.createLogger()
 	else
-		log = setmetatable({}, {_index = function() end})
+		log = nullLogger
 	end
 end
 
