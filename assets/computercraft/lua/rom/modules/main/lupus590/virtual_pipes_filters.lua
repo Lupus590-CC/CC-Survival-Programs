@@ -12,7 +12,7 @@ local function keepAStackFilter(item)
     return keepQuantityFilter(item, 64)
 end
 
-local function prioritiseItemsInOrderFilter(queryItem, _slot, peripheralName, priorityList)
+local function prioritiseItemsInOrderFilter(queryItem, peripheralName, priorityList)
     -- If the peripheral has an item higher on the list than the query item then don't allow the transfer
 
     if queryItem.name == priorityList[1] then
@@ -41,8 +41,17 @@ local function prioritiseItemsInOrderFilter(queryItem, _slot, peripheralName, pr
     return true
 end
 
+local function overFlowPreventer(itemName, peripheralName)
+    for slot, item in pairs(peripheral.call(peripheralName)) do
+        if item.name == itemName then
+            return item.count == 64*8
+        end
+    end
+end
+
 return {
 	keepQuantityFilter = keepQuantityFilter,
 	keepAStackFilter = keepAStackFilter,
 	prioritiseItemsInOrderFilter = prioritiseItemsInOrderFilter,
+	overFlowPreventer = overFlowPreventer,
 }
