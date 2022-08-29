@@ -40,7 +40,7 @@ local function createLogger(loggerConfig)
 	local logger = {}
 	-- logger methods
 	for _, v in ipairs(levels) do
-		logger[v] = function(input) -- All items in the same call should output as one message
+		logger[v] = function(input)
 			if loggerConfig._minimumLevel > levels[v] then
 				return
 			end
