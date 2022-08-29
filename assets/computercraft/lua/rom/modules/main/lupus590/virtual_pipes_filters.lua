@@ -1,6 +1,6 @@
 -- While some of these can be used directly as a filter, these are much better as utilities within a custom filter.
 -- There's no reason that you can't have a filter functions that calls other filters to perform complex filtering logic.
- -- TODO: fluids
+ -- TODO: fluids compatability for the filters, most filters probably can do both
 
 local function keepQuantityFilter(item, quantityToKeep)
     local limit = item.count - quantityToKeep
