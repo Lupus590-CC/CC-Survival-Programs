@@ -129,6 +129,7 @@ registerSink("console", function(terminal)
 	terminal.clear()
 	terminal.setCursorPos(1, 1)
 	local width, height = terminal.getSize()
+	terminal.setCursorPos(1, height)
 
 	local strings = require("cc.strings")
 
@@ -136,9 +137,9 @@ registerSink("console", function(terminal)
 		local formatedMessage = ("[%s %s] %s"):format(level, time, rawMessage) -- TODO: smart colours
 
 		for _, line in ipairs(strings.wrap(formatedMessage, width)) do
-			terminal.setCursorPos(1, height)
-			terminal.scroll(1)
 			terminal.write(line)
+			terminal.scroll(1)
+			terminal.setCursorPos(1, height)
 		end
 	end
 	return log
