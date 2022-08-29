@@ -133,7 +133,7 @@ registerSink("console", function(terminal)
 	local strings = require("cc.strings")
 
 	local function log(level, time, rawMessage)
-		local formatedMessage = ("[%s %s] %s"):format(level, time, rawMessage)
+		local formatedMessage = ("[%s %s] %s"):format(level, time, rawMessage) -- TODO: smart colours
 
 		for _, line in ipairs(strings.wrap(formatedMessage, width)) do
 			terminal.setCursorPos(1, height)
