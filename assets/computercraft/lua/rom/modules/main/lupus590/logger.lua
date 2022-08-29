@@ -40,7 +40,7 @@ local function createLogger(loggerConfig)
 	local logger = {}
 	-- logger methods
 	for _, v in ipairs(levels) do
-		logger[v] = function( input) -- All items in the same call should output as one message
+		logger[v] = function(input) -- All items in the same call should output as one message
 			if loggerConfig._minimumLevel > levels[v] then
 				return
 			end
@@ -56,18 +56,6 @@ local function createLogger(loggerConfig)
 			end
 		end
 	end
-
-	logger.flush = function()
-		for _, sink in pairs(loggerConfig._sinks) do
-			sink.flush()
-		end
-	end
-	logger.flushAndClose = function()
-		for _, sink in pairs(loggerConfig._sinks) do
-			sink.flushAndClose()
-		end
-	end
-
 
 	return logger
 end
