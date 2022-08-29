@@ -3,7 +3,7 @@
 -- TODO: have a var in the pipe to tell it what type it is, could help with dupe code
 -- TODO: can we parallel some of the peripheral calls?
 
-local expect = require("cc.expect").expect
+local expect = require("cc.expect")
 local pretty = require("cc.pretty")
 local ok, logger = pcall(require, "lupus590.logger")
 local log
@@ -14,15 +14,19 @@ if ok then
 		.writeTo().fileLuaTable("virtualPipe.lua.log")
 		.minimumLevel(3)
 		.createLogger()
+
+	logger = nil
 else
 	log = setmetatable({}, {_index = function() end})
 end
 
-local function setLogger(logger)
-	if logger.createLogger then
-		log = logger.createLogger()
+local function setLogger(newLogger)
+	expect.expect(1, newLogger, "table", "nil")
+	if newLogger then
+		expect.field(newLogger, "createLogger", "function")
+		log = newLogger.createLogger()
 	else
-		log = logger
+		log = setmetatable({}, {_index = function() end})
 	end
 end
 
@@ -40,13 +44,13 @@ local function addFilterAndPrioritySetters(sourceOrDestination)
 	end
 
 	function sourceOrDestination.setFilter(func)
-        expect(1, func, "function", "nil")
+        expect.expect(1, func, "function", "nil")
 			sourceOrDestination._backingTable.filter = func or emptyFilter
         return sourceOrDestination
     end
 
     function sourceOrDestination.setPriority(priority)
-        expect(1, priority, "number", "nil")
+        expect.expect(1, priority, "number", "nil")
         sourceOrDestination._backingTable.priority = priority
         return sourceOrDestination
     end
@@ -246,7 +250,7 @@ local function newPipe()
 
 	-- TODO: verify that sources and destinations are valid inventories/tanks
 	function pipe.addSource(sourceInventory)
-		expect(1, sourceInventory, "string")
+		expect.expect(1, sourceInventory, "string")
 		if pipe._backingTable.sources[sourceInventory] then
 			local err = "Sources can only be in the network once"
 			log.fatal(err)
@@ -256,7 +260,7 @@ local function newPipe()
 	end
 
 	function pipe.addDestination(destinationinventory)
-		expect(1, destinationinventory, "string")
+		expect.expect(1, destinationinventory, "string")
 		if pipe._backingTable.destinations[destinationinventory] then
 			local err = "Destinations can only be in the network once"
 			log.fatal(err)
@@ -266,13 +270,13 @@ local function newPipe()
 	end
 
 	function pipe.removeSource(sourceInventory)
-		expect(1, sourceInventory, "string")
+		expect.expect(1, sourceInventory, "string")
 		pipe._backingTable.sources[sourceInventory] = nil
 		return pipe
 	end
 
 	function pipe.removeDestination(destinationinventory)
-		expect(1, destinationinventory, "string")
+		expect.expect(1, destinationinventory, "string")
 		pipe._backingTable.destinations[destinationinventory] = nil
 		return pipe
 	end
