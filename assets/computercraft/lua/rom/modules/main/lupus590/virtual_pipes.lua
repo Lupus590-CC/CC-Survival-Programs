@@ -21,8 +21,9 @@ end
 local function setLogger(logger)
 	if logger.createLogger then
 		log = logger.createLogger()
+	else
+		log = logger
 	end
-	log = logger
 end
 
 local function emptyFilter(_itemOrFluid, _slotOrTank, _peripheralName)
@@ -94,6 +95,11 @@ local function buildDestinations(pipeBackingTable, builtPipe)
 	builtPipe._backingTable = builtPipe._backingTable or {}
 	builtPipe._backingTable.destinations = builtPipe._backingTable.destinations or {}
 	local builtPipeDestinations = builtPipe._backingTable.destinations
+
+	print("using log with keys")
+	for k in pairs(log) do
+		print(k)
+	end
 
 	log.debug("virtual_pipes.lua: vuilding sources")
 
