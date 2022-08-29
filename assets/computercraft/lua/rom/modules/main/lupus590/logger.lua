@@ -17,6 +17,7 @@ local levels = {
 }
 for k,v in ipairs(levels) do
 	levels[v] = k
+	levels[v:sub(1,1)] = k
 end
 
 local function getLevels()
