@@ -42,7 +42,7 @@ local function prioritiseItemsInOrderFilter(queryItem, peripheralName, priorityL
 end
 
 local function overFlowPreventer(itemName, peripheralName)
-    for slot, item in pairs(peripheral.call(peripheralName)) do
+    for slot, item in pairs(peripheral.call(peripheralName, "list")) do
         if item.name == itemName then
             return item.count == 64*8
         end
