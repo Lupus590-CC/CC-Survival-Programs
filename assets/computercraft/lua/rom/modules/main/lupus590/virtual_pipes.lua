@@ -201,7 +201,6 @@ local function tickBuiltPipe(builtPipe, pipeType) -- TODO: return true if items/
 
 				log.debug("virtual_pipes.lua: items = "..pretty.render(pretty.pretty(listOrTanks)))
 				for slotOrTank, itemOrFluid in pairs(listOrTanks) do
-					local itemOrFluid
 					if pipeType == "item" and source.filterWithDetail then
 						ok, itemOrFluid = pcall(peripheral.call, source.name, "getItemDetail", slotOrTank) -- list doesn't give everything we sometimes want
 						if not ok then
