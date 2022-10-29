@@ -1,7 +1,6 @@
 -- TODO: code cleanup
 -- TODO: use metatable for pipe building and pipes themselves?
--- TODO: have a var in the pipe to tell it what type it is, could help with dupe code
--- TODO: can we parallel some of the peripheral calls?
+-- TODO: can we parallel some of the peripheral calls? client code can paralise the pipes
 
 local expect = require("cc.expect")
 local pretty = require("cc.pretty")
