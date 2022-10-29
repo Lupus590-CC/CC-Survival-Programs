@@ -44,9 +44,10 @@ local function addFilterAndPrioritySetters(sourceOrDestination)
 		error(err, 3)
 	end
 
-	function sourceOrDestination.setFilter(func)
+	function sourceOrDestination.setFilter(func,  withDetail)
         expect.expect(1, func, "function", "nil")
 			sourceOrDestination._backingTable.filter = func or emptyFilter
+			sourceOrDestination._backingTable.filterWithDetail = not not withDetail -- not not == to boolean
         return sourceOrDestination
     end
 
@@ -84,7 +85,7 @@ local function buildSourceDestination(sourcesDestinations, builtPipeSourceDestin
 
 		local currentPriorityPipes = builtPipeSourceDestination[priority]
 		currentPriorityPipes.n = currentPriorityPipes.n + 1
-		currentPriorityPipes[currentPriorityPipes.n] = {name = v.name, filter = v.filter or emptyFilter}
+		currentPriorityPipes[currentPriorityPipes.n] = {name = v.name, filter = v.filter or emptyFilter, filterWithDetail = v.filterWithDetail or false}
 
 		builtPipeSourceDestination.min = math.min(builtPipeSourceDestination.min or 0, priority)
 		builtPipeSourceDestination.max = math.max(builtPipeSourceDestination.max or 0, priority)
@@ -136,6 +137,9 @@ local function tickBuiltPipe(builtPipe, pipeType) -- TODO: return true if items/
 			if destinations[destinationPriorityLevel] then
 				log.debug("virtual_pipes.lua: looping destinations at priority = "..destinationPriorityLevel)
 				for _, destination in ipairs(destinations[destinationPriorityLevel]) do
+					if pipeType == "item" and destination.filterWithDetail and (not source.filterWithDetail) then -- not source.filterWithDetail because we might already have this information
+						ok, itemOrFluid = pcall(peripheral.call, source.name, "getItemDetail", slotOrTank) -- list doesn't give everything we sometimes want
+					end
 					local allowin, inLimit, destSlot = destination.filter(itemOrFluid, nil, destination.name)
 					log.debug(("virtual_pipes.lua: destination filter allowin = %s inLimit = %s destSlot = %s"):format(allowin, inLimit, destSlot))
 					if allowin then
@@ -190,8 +194,7 @@ local function tickBuiltPipe(builtPipe, pipeType) -- TODO: return true if items/
 				log.debug("virtual_pipes.lua: items = "..pretty.render(pretty.pretty(listOrTanks)))
 				for slotOrTank, itemOrFluid in pairs(listOrTanks) do
 					local itemOrFluid
-					if pipeType == "item" then
-						-- TODO: this is expensive I think, can we add a toggle to skip it?
+					if pipeType == "item" and source.filterWithDetail then
 						ok, itemOrFluid = pcall(peripheral.call, source.name, "getItemDetail", slotOrTank) -- list doesn't give everything we sometimes want
 					end
 
@@ -211,15 +214,14 @@ end
 local function buildPipe(pipe)
 	local pipeBackingTable = pipe._backingTable
 	--[[ {
-		sources = { [name] = { name = ..., filter = ..., prority = ...}},
-		filter = ...,
-		destinations = { [name] = { name = ..., filter = ..., prority = ...}}
+		sources = { [name] = { name = ..., filter = ..., filterWithDetail = bool, prority = ...}},
+		destinations = { [name] = { name = ..., filter = ..., filterWithDetail = bool, prority = ...}}
 	} ]]
 
 	local builtPipe = {_backingTable = {sources = {}, destinations = {}}}
 	--[[ {
-		sources = { min = 0, max = 0, [priority] = { [n] = { name = ..., filter = ...}}},
-		destinations = { min = 0, max = 0, [priority] = { [n] = { name = ..., filter = ...}}}
+		sources = { min = 0, max = 0, [priority] = { [n] = { name = ..., filter = ..., filterWithDetail = bool}}},
+		destinations = { min = 0, max = 0, [priority] = { [n] = { name = ..., filter = ..., filterWithDetail = bool}}}
 	} ]]
 
 	buildDestinations(pipeBackingTable, builtPipe)
