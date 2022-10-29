@@ -139,6 +139,15 @@ local function tickBuiltPipe(builtPipe, pipeType) -- TODO: return true if items/
 				for _, destination in ipairs(destinations[destinationPriorityLevel]) do
 					if pipeType == "item" and destination.filterWithDetail and (not source.filterWithDetail) then -- not source.filterWithDetail because we might already have this information
 						ok, itemOrFluid = pcall(peripheral.call, source.name, "getItemDetail", slotOrTank) -- list doesn't give everything we sometimes want
+						if not ok then
+							-- TODO: we wrongly blame this sometimes if the error is terminated or others probably
+							local err = listOrTanks
+							log.fatal(err)
+							error(err, 0)
+							err = "Peripheral `"..source.name.."` disconnected or doesn't exist."
+							log.fatal(err)
+							error(err, 0)
+						end
 					end
 					local allowin, inLimit, destSlot = destination.filter(itemOrFluid, nil, destination.name)
 					log.debug(("virtual_pipes.lua: destination filter allowin = %s inLimit = %s destSlot = %s"):format(allowin, inLimit, destSlot))
@@ -196,6 +205,15 @@ local function tickBuiltPipe(builtPipe, pipeType) -- TODO: return true if items/
 					local itemOrFluid
 					if pipeType == "item" and source.filterWithDetail then
 						ok, itemOrFluid = pcall(peripheral.call, source.name, "getItemDetail", slotOrTank) -- list doesn't give everything we sometimes want
+						if not ok then
+							-- TODO: we wrongly blame this sometimes if the error is terminated or others probably
+							local err = listOrTanks
+							log.fatal(err)
+							error(err, 0)
+							err = "Peripheral `"..source.name.."` disconnected or doesn't exist."
+							log.fatal(err)
+							error(err, 0)
+						end
 					end
 
 					log.debug("virtual_pipes.lua: item/fluid in slot/tank "..slotOrTank)
