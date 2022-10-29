@@ -47,7 +47,7 @@ local function overFlowPreventer(itemName, peripheralName, maxCount)
     for slot, item in pairs(peripheral.call(peripheralName, "list")) do
         if item.name == itemName then
             interestedItemFound = true
-            return item.count < maxCount
+            return maxCount - item.count
         end
     end
     if not interestedItemFound then
