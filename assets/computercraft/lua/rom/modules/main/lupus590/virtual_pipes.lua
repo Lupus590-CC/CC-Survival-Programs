@@ -173,7 +173,7 @@ local function tickBuiltPipe(builtPipe, pipeType) -- TODO: return true if items/
 				log.debug("virtual_pipes.lua: source = "..source.name)
 				local ok, listOrTanks
 				if pipeType == "item" then
-					ok, listOrTanks = pcall(peripheral.call, source.name, "list") -- TODO: there's some information that we don't get that is nice to have with getItemDetail
+					ok, listOrTanks = pcall(peripheral.call, source.name, "list")
 				elseif pipeType == "fluid" then
 					ok, listOrTanks = pcall(peripheral.call, source.name, "tanks")
 				end
@@ -189,6 +189,12 @@ local function tickBuiltPipe(builtPipe, pipeType) -- TODO: return true if items/
 
 				log.debug("virtual_pipes.lua: items = "..pretty.render(pretty.pretty(listOrTanks)))
 				for slotOrTank, itemOrFluid in pairs(listOrTanks) do
+					local itemOrFluid
+					if pipeType == "item" then
+						-- TODO: this is expensive I think, can we add a toggle to skip it?
+						ok, itemOrFluid = pcall(peripheral.call, source.name, "getItemDetail", slotOrTank) -- list doesn't give everything we sometimes want
+					end
+
 					log.debug("virtual_pipes.lua: item/fluid in slot/tank "..slotOrTank)
 					local allowOut, outLimit = source.filter(itemOrFluid, slotOrTank, source.name)
 
