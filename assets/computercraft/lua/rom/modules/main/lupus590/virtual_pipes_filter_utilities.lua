@@ -43,10 +43,15 @@ local function prioritiseItemsInOrderFilter(queryItem, peripheralName, priorityL
 end
 
 local function overFlowPreventer(itemName, peripheralName, maxCount)
+    local interestedItemFound = false
     for slot, item in pairs(peripheral.call(peripheralName, "list")) do
         if item.name == itemName then
+            interestedItemFound = true
             return item.count < maxCount
         end
+    end
+    if not interestedItemFound then
+        return maxCount
     end
 end
 
