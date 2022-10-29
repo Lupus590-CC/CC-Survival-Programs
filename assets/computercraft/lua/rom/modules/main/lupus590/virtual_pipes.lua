@@ -173,7 +173,7 @@ local function tickBuiltPipe(builtPipe, pipeType) -- TODO: return true if items/
 				log.debug("virtual_pipes.lua: source = "..source.name)
 				local ok, listOrTanks
 				if pipeType == "item" then
-					ok, listOrTanks = pcall(peripheral.call, source.name, "list")
+					ok, listOrTanks = pcall(peripheral.call, source.name, "list") -- TODO: there's some information that we don't get that is nice to have with getItemDetail
 				elseif pipeType == "fluid" then
 					ok, listOrTanks = pcall(peripheral.call, source.name, "tanks")
 				end
