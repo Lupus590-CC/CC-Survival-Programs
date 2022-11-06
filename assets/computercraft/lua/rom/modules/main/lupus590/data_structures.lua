@@ -22,39 +22,39 @@ local function newStack()
 end
 
 local function newQueue()
-  local queue = {_backingTable = {head=0, tail = 0}, _maxHeadDrift = 10}
+    local queue = {_backingTable = {head=0, tail = 0}, _maxHeadDrift = 10}
 
-  function queue.isEmpty()
-      return (queue._backingTable.tail - queue._backingTable.head) == 0
-  end
+    function queue.isEmpty()
+        return (queue._backingTable.tail - queue._backingTable.head) == 0
+    end
 
-  function queue._compact()
-      if queue.isEmpty() or queue._backingTable.head < queue._maxHeadDrift-1 then return end
-      local newPos = 1
-      local backingTable = queue._backingTable
-      for pos = backingTable.head, backingTable.tail do
-          backingTable[newPos] = backingTable[pos]
-          newPos = newPos + 1
-      end
-      backingTable.head = 1
-      backingTable.tail = newPos-1
-  end
+    function queue._compact()
+        if queue.isEmpty() or queue._backingTable.head < queue._maxHeadDrift-1 then return end
+        local newPos = 1
+        local backingTable = queue._backingTable
+        for pos = backingTable.head, backingTable.tail do
+            backingTable[newPos] = backingTable[pos]
+            newPos = newPos + 1
+        end
+        backingTable.head = 1
+        backingTable.tail = newPos-1
+    end
 
-  function queue.enqueue(value)
-      queue._backingTable.tail = queue._backingTable.tail + 1
-      queue._backingTable[queue._backingTable.tail] = value
-  end
+    function queue.enqueue(value)
+       queue._backingTable.tail = queue._backingTable.tail + 1
+       queue._backingTable[queue._backingTable.tail] = value
+    end
 
-  function queue.dequeue()
-      if queue.isEmpty() then
-          error("Queue is empty, can't dequeue an empty queue.", 2)
-      end
-      queue._backingTable.head = queue._backingTable.head + 1
-      local value = queue._backingTable[queue._backingTable.head]
-      queue._compact()
-      return value
-  end
-  return queue
+    function queue.dequeue()
+        if queue.isEmpty() then
+            error("Queue is empty, can't dequeue an empty queue.", 2)
+        end
+        queue._backingTable.head = queue._backingTable.head + 1
+        local value = queue._backingTable[queue._backingTable.head]
+        queue._compact()
+        return value
+    end
+    return queue
 end
 
 return {

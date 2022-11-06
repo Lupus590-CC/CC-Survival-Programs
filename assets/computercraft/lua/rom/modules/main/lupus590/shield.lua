@@ -23,7 +23,7 @@ local function shield(func, ...)
     expect(1, func, "function")
 
     local thread = coroutine.create(func)
-    
+
     local event, filter, pars = table.pack(...)
     while coroutine.status(thread) ~= "dead" do
         if event[1] ~= "terminate" and filter == nil or filter == event[1] then
