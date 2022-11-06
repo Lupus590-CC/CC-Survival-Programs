@@ -21,11 +21,11 @@ for k,v in ipairs(levels) do
 end
 
 local function getLevels()
-	local l = {}
+	local returnLevels = {}
 	for k,v in pairs(levels) do
-		l[v] = k
+		returnLevels[v] = k
 	end
-	return l
+	return returnLevels
 end
 
 local sinks ={}
@@ -34,26 +34,27 @@ local function registerSink(label, sinkConstuctor)
 	expect.expect(1, label, "string")
 	expect.expect(2, sinkConstuctor, "function")
 
-	sinks[label] = sinkConstuctor
+	sinks[label] = sinkConstuctor -- TODO: what if label already exists?
 end
 
 local function createLogger(loggerConfig)
 	local logger = {}
 	-- logger methods
-	for _, v in ipairs(levels) do
-		logger[v] = function(input)
-			if loggerConfig._minimumLevel > levels[v] then
+	for levelNumber, levelString in ipairs(levels) do
+
+		logger[levelString] = function(input)
+			if loggerConfig._minimumLevel > levelNumber then
 				return
 			end
 
 			local now  = os.epoch("utc")
 			local date = os.date("%Y-%m-%d %H:%M:%S", now * 1e-3)
 			local milliseconds = ("%.2f"):format(now % 1000 * 1e-3):sub(2)
-			local level = levels[v]
+			local level = levelString
 			local time = ("%s%s"):format(date, milliseconds)
 
 			for _, sink in pairs(loggerConfig._sinks) do
-				sink(level, time, input)
+				sink(level, time, input) -- TODO: change these so that the nink gets the raw values? Maybe use a table as the parameter which has things in various formats?
 			end
 		end
 	end
@@ -86,7 +87,7 @@ local function newLoggerConfig()
 	end
 
 	loggerConfig.minimumLevel = function(newLevel)
-		expect.expect(1, "newLevel", "number", "string")
+		expect.expect(1, newLevel, "number", "string")
 		assert(levels[newLevel], "New minimum level is out of range.")
 		if type(newLevel) == "string" then
 			newLevel = levels[newLevel]
