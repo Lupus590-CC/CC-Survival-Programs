@@ -18,7 +18,7 @@ else
 	log = nullLogger
 end
 
---- Set's the logger to use or (if nil) disables logging.
+--- Sets the logger to use or (if nil) disables logging.
 ---@param newLogger {createLogger : function} | nil The new loggerConfig to create a logger from.
 local function setLogger(newLogger)
 	expect.expect(1, newLogger, "table", "nil")
