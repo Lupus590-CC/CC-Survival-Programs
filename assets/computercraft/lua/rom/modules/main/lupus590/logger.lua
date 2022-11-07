@@ -20,6 +20,8 @@ for k,v in ipairs(levels) do
 	levels[v:sub(1,1)] = k
 end
 
+--- Gets the accepted logging levels, verbose, debug, information, etc.
+---@return table All of the logging levels accepted by the logger.
 local function getLevels()
 	local returnLevels = {}
 	for k,v in pairs(levels) do
@@ -30,6 +32,9 @@ end
 
 local sinks ={}
 
+--- Adds a that any logger can then use.
+---@param label string The unique identifier of the sink.
+---@param sinkConstuctor function The function that is called to create this sink. This can take parameters. This contructor function should return a function that accepts the parameters level, time, and rawMessage which all should be strings.
 local function registerSink(label, sinkConstuctor)
 	expect.expect(1, label, "string")
 	expect.expect(2, sinkConstuctor, "function")
@@ -42,6 +47,8 @@ local function createLogger(loggerConfig)
 	-- logger methods
 	for levelNumber, levelString in ipairs(levels) do
 
+		--- The actual log functions. The names of these logging functions are the string values of the levels.
+		---@param input any The message to be logged.
 		logger[levelString] = function(input)
 			if loggerConfig._minimumLevel > levelNumber then
 				return
@@ -86,6 +93,9 @@ local function newLoggerConfig()
 		return createLogger(loggerConfig)
 	end
 
+	--- Set the minimum level of logging, messages that are lower than this will be ignored.
+	---@param newLevel number|string The level to set to.
+	---@return table self Allows chaining.
 	loggerConfig.minimumLevel = function(newLevel)
 		expect.expect(1, newLevel, "number", "string")
 		assert(levels[newLevel], "New minimum level is out of range.")
@@ -96,6 +106,8 @@ local function newLoggerConfig()
         return loggerConfig
 	end
 
+	--- Add a registered sink to this logger, messages pushed to the logger will be given to each added sink.
+	---@return {console : function, filePlainText : function, fileLuaTable : function} . A table of functions which are the sink constuctors, look up the docs of the sink you want to use to know how to constuct it.
 	loggerConfig.writeTo = function()
 		return writeTo(loggerConfig)
 	end
@@ -103,6 +115,9 @@ local function newLoggerConfig()
 	return loggerConfig
 end
 
+--- Registers a sink that writes the logs to the screen.
+---@param terminal table|nil The terminal object to write to, defaults to term.current().
+---@return function log Used internally, the logger calls this every time there is something to log.
 registerSink("console", function(terminal)
     if terminal then
         local ok, errOldTerm = pcall(term.redirect, terminal) -- borrow redirect to validate the terminal
@@ -135,6 +150,9 @@ registerSink("console", function(terminal)
 	return log
 end)
 
+--- Registers a sink that writes simple text logs to the given filename.
+---@param fileName string The file to write to.
+---@return function log Used internally, the logger calls this every time there is something to log.
 registerSink("filePlainText", function(fileName)
 	expect.expect(1, fileName, "string")
 
@@ -151,6 +169,9 @@ registerSink("filePlainText", function(fileName)
 	return log
 end)
 
+--- Registers a sink that writes a lua table representing the logs to the given filename.
+---@param fileName string The file to write to.
+---@return function log Used internally, the logger calls this every time there is something to log.
 registerSink("fileLuaTable", function(fileName) -- We miss the outermost {}'s but the reader can add those
 	expect.expect(1, fileName, "string")
 

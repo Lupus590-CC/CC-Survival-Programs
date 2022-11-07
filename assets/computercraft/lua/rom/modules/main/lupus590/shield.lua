@@ -19,6 +19,10 @@
 
 local expect = require("cc.expect").expect
 
+--- Protects the given function from terminate events.
+---@param func function The function to protect.
+---@vararg any Arguments to pass to the function call.
+---@return any, ... The return values of the function.
 local function shield(func, ...)
     expect(1, func, "function")
 

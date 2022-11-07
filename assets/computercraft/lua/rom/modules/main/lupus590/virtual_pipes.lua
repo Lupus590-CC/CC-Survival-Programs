@@ -14,12 +14,12 @@ if ok then
 		--.writeTo().fileLuaTable("virtualPipe.lua.log")
 		.minimumLevel(3)
 		.createLogger()
-
-	logger = nil
 else
 	log = nullLogger
 end
 
+--- Set's the logger to use or (if nil) disables logging.
+---@param newLogger {createLogger : function} | nil The new loggerConfig to create a logger from.
 local function setLogger(newLogger)
 	expect.expect(1, newLogger, "table", "nil")
 	if newLogger then
@@ -30,6 +30,13 @@ local function setLogger(newLogger)
 	end
 end
 
+--- Using this as an example filter. This is actually the default filter and used when client code sets the filter to nil.
+---@param _itemOrFluid table The item as given by perpheral.list (or peripheral.getItemDetail if that was enabled when setting the filter)
+---@param _slotOrTank number | nil The slot or tank index that the _itemOrFluid is in. This is nil for destination filters.
+---@param _peripheralName string The name of the peripheral that the filter is applied to. E.g. the destination peripheral if the filter is set on the destination.
+---@return boolean allowTranfer True to allow item/fluids to move. False to prevent that. This overrides _limit. If nil then we assume false.
+---@return number | nil _limit The maximum amount of items/fluids to move. If both the source and the destination have limits then the lower limit is used. If nil then we assume math.huge.
+---@return number | nil _destinationSlot What slot to move the item to, only used by destination item filters. Source filters and fluid filters don't use this. If nil then the peripheral will pick one.
 local function emptyFilter(_itemOrFluid, _slotOrTank, _peripheralName)
 	local allowTranfer, _limit, _destinationSlot
 	allowTranfer = true
@@ -43,13 +50,21 @@ local function addFilterAndPrioritySetters(sourceOrDestination)
 		error(err, 3)
 	end
 
+	--- Sets the filter function for this source or destination.
+	---@param func function The function that will do the filtering. This should follow the format of emptyFilter and not have side effects.
+	---@param withDetail boolean | any If true (or truthy) then the filter function will have extra information in its item argument. Compare peripheral.list and peripheral.getItemDetail
+	---@return table self Allows chaining.
 	function sourceOrDestination.setFilter(func,  withDetail)
         expect.expect(1, func, "function", "nil")
-			sourceOrDestination._backingTable.filter = func or emptyFilter
-			sourceOrDestination._backingTable.filterWithDetail = not not withDetail -- not not == to boolean
+		sourceOrDestination._backingTable.filter = func or emptyFilter
+		sourceOrDestination._backingTable.filterWithDetail = not not withDetail -- not not == to boolean
         return sourceOrDestination
     end
 
+	-- TODO: Higher priorities go first?
+	--- Sets the priority of the source or destination, lower priorities go first.
+	---@param priority number | nil The new priority level, can be negative. If nil then the default priority (0) is used.
+	---@return table self Allows chaining.
     function sourceOrDestination.setPriority(priority)
         expect.expect(1, priority, "number", "nil")
         sourceOrDestination._backingTable.priority = priority
@@ -101,7 +116,7 @@ local function buildDestinations(pipeBackingTable, builtPipe)
 	builtPipe._backingTable.destinations = builtPipe._backingTable.destinations or {}
 	local builtPipeDestinations = builtPipe._backingTable.destinations
 
-	log.debug("virtual_pipes.lua: vuilding sources")
+	log.debug("virtual_pipes.lua: building destinations")
 
 	buildSourceDestination(pipeBackingTable.destinations, builtPipeDestinations)
 end
@@ -116,7 +131,7 @@ local function buildSources(pipeBackingTable, builtPipe)
 	builtPipe._backingTable.sources = builtPipe._backingTable.sources or {}
 	local builtPipeSources = builtPipe._backingTable.sources
 
-	log.debug("virtual_pipes.lua: vuilding sources")
+	log.debug("virtual_pipes.lua: building sources")
 
 	buildSourceDestination(pipeBackingTable.sources, builtPipeSources)
 end
@@ -248,6 +263,8 @@ end
 local function buildItemPipe(pipe)
 	local builtPipe = buildPipe(pipe)
 
+	--- Attempt to move items from every source to every destination.
+	---@return nil
 	function builtPipe.tick()
 		return tickBuiltPipe(builtPipe, "item")
 	end
@@ -258,6 +275,8 @@ end
 local function buildFluidPipe(pipe)
 	local builtPipe = buildPipe(pipe)
 
+	--- Attempt to move items from every source to every destination.
+	---@return nil
 	function builtPipe.tick()
 		return tickBuiltPipe(builtPipe, "fluid")
 	end
@@ -268,7 +287,9 @@ end
 local function newPipe()
 	local pipe = {_backingTable = {sources = {}, destinations = {}}}
 
-	-- TODO: verify that sources and destinations are valid inventories/tanks
+	--- Add an input inventory/tank to the pipe.
+	---@param sourceInventory string The peripheral name to add.
+	---@return table . A representation of the source, pririties and filters can be placed here.
 	function pipe.addSource(sourceInventory)
 		expect.expect(1, sourceInventory, "string")
 		if pipe._backingTable.sources[sourceInventory] then
@@ -279,6 +300,9 @@ local function newPipe()
 		return addSource(pipe, sourceInventory)
 	end
 
+	--- Add an output inventory/tank to the pipe.
+	---@param destinationinventory string The peripheral name to add.
+	---@return table . A representation of the destination, pririties and filters can be placed here.
 	function pipe.addDestination(destinationinventory)
 		expect.expect(1, destinationinventory, "string")
 		if pipe._backingTable.destinations[destinationinventory] then
@@ -289,24 +313,16 @@ local function newPipe()
 		return addDestination(pipe, destinationinventory)
 	end
 
-	function pipe.removeSource(sourceInventory)
-		expect.expect(1, sourceInventory, "string")
-		pipe._backingTable.sources[sourceInventory] = nil
-		return pipe
-	end
-
-	function pipe.removeDestination(destinationinventory)
-		expect.expect(1, destinationinventory, "string")
-		pipe._backingTable.destinations[destinationinventory] = nil
-		return pipe
-	end
-
 	return pipe
 end
 
+--- Creates a new virtual pipe configuation that handles items.
+---@return table pipe The new item pipe.
 local function newItemPipe()
 	local pipe = newPipe()
 
+	--- Builds the pipe into its useable form.
+	---@return table . The built pipe.
 	function pipe.build()
 		return buildItemPipe(pipe)
 	end
@@ -314,9 +330,13 @@ local function newItemPipe()
 	return pipe
 end
 
+--- Creates a new virtual pipe configuation that handles fluids.
+---@return table pipe The new fluid pipe.
 local function newFluidPipe()
 	local pipe = newPipe()
 
+	--- Builds the pipe into its useable form.
+	---@return table . The built pipe.
 	function pipe.build()
 		return buildFluidPipe(pipe)
 	end
