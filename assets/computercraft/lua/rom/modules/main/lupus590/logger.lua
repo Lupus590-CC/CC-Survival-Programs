@@ -1,6 +1,6 @@
 local expect = require("cc.expect")
 
-
+-- TODO: scoping? Could be useful for libaries or when things want to say when they start and stop something. How to implement? An option to ignore a scope could be nice too, that way users can filter out library logs.
 -- TODO: enrich/format
 -- TODO: enrich with context
 -- TODO: "cc.pretty" things?
@@ -34,12 +34,20 @@ local sinks ={}
 
 --- Adds a that any logger can then use.
 ---@param label string The unique identifier of the sink.
----@param sinkConstuctor function The function that is called to create this sink. This can take parameters. This contructor function should return a function that accepts the parameters level, time, and rawMessage which all should be strings.
+---@param sinkConstuctor function The function that is called to create this sink. This can take parameters. This contructor function should return a function that accepts a single table parameter.
 local function registerSink(label, sinkConstuctor)
 	expect.expect(1, label, "string")
 	expect.expect(2, sinkConstuctor, "function")
 
-	sinks[label] = sinkConstuctor -- TODO: what if label already exists?
+	if label:find("%s") then -- TODO: Need to check if this covers all illegal characters.
+		error("Label `"..label.."` contains illegal characters.", 2)
+	end
+
+	if sinks[label] then
+		error("A sink with label `"..label.."` already exists", 2)
+	end
+
+	sinks[label] = sinkConstuctor
 end
 
 local function createLogger(loggerConfig)
@@ -48,20 +56,19 @@ local function createLogger(loggerConfig)
 	for levelNumber, levelString in ipairs(levels) do
 
 		--- The actual log functions. The names of these logging functions are the string values of the levels.
-		---@param input any The message to be logged.
-		logger[levelString] = function(input)
+		---@param message any The message to be logged.
+		logger[levelString] = function(message)
 			if loggerConfig._minimumLevel > levelNumber then
 				return
 			end
 
-			local now  = os.epoch("utc")
-			local date = os.date("%Y-%m-%d %H:%M:%S", now * 1e-3)
-			local milliseconds = ("%.2f"):format(now % 1000 * 1e-3):sub(2)
-			local level = levelString
-			local time = ("%s%s"):format(date, milliseconds)
+			local nowUtc = os.epoch("utc")
+			local date = os.date("%Y-%m-%d %H:%M:%S", nowUtc * 1e-3)
+			local milliseconds = ("%.2f"):format(nowUtc % 1000 * 1e-3):sub(2)
+			local formatedDateTimeUtc = ("%s%s"):format(date, milliseconds)
 
 			for _, sink in pairs(loggerConfig._sinks) do
-				sink(level, time, input) -- TODO: change these so that the nink gets the raw values? Maybe use a table as the parameter which has things in various formats?
+				sink({levelString = levelString, levelNumber = levelNumber, formatedDateTimeUtc = formatedDateTimeUtc, message = message, nowUtc = nowUtc})
 			end
 		end
 	end
@@ -138,8 +145,9 @@ registerSink("console", function(terminal)
 
 	local strings = require("cc.strings")
 
-	local function log(level, time, rawMessage)
-		local formatedMessage = ("[%s %s] %s"):format(level, time, rawMessage) -- TODO: smart colours
+	local function log(data)
+		local level, time, message = data.levelString, data.formatedDateTimeUtc, data.message
+		local formatedMessage = ("[%s %s] %s"):format(level, time, message) -- TODO: smart colours
 
 		for _, line in ipairs(strings.wrap(formatedMessage, width)) do
 			terminal.write(line)
@@ -161,8 +169,9 @@ registerSink("filePlainText", function(fileName)
 		error(err)
 	end
 
-	local function log(level, time, rawMessage)
-		local formatedMessage = ("[%s %s] %s"):format(level, time, rawMessage)
+	local function log(data)
+		local level, time, message = data.levelString, data.formatedDateTimeUtc, data.message
+		local formatedMessage = ("[%s %s] %s"):format(level, time, message)
 		file.writeLine(formatedMessage)
 		file.flush()
 	end
@@ -180,9 +189,8 @@ registerSink("fileLuaTable", function(fileName) -- We miss the outermost {}'s bu
 		error(err)
 	end
 
-	local function log(level, time, rawMessage)
-		local formatedMessage = ([[{level = "%s", time = "%s", message = "%s"},]]):format(level, time, rawMessage)
-		file.writeLine(formatedMessage)
+	local function log(data)
+		file.writeLine(textutils.serialise(data)..",")
 		file.flush()
 	end
 	return log

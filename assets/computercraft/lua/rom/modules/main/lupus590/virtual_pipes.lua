@@ -18,6 +18,7 @@ else
 	log = nullLogger
 end
 
+-- TODO: take an already built logger?
 --- Sets the logger to use or (if nil) disables logging.
 ---@param newLogger {createLogger : function} | nil The new loggerConfig to create a logger from.
 local function setLogger(newLogger)
