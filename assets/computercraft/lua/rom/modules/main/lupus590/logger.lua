@@ -1,6 +1,6 @@
 local expect = require("cc.expect")
 
--- TODO: scoping? Could be useful for libaries or when things want to say when they start and stop something. How to implement? An option to ignore a scope could be nice too, that way users can filter out library logs.
+-- TODO: scoping? Could be useful for libaries or when things want to say when they start and stop something. How to implement? An option to ignore a scope could be nice too, that way users can filter out library logs. Can also be context.
 -- TODO: enrich/format
 -- TODO: enrich with context
 -- TODO: "cc.pretty" things?
