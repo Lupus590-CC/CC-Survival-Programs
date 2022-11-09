@@ -40,11 +40,11 @@ local function registerSink(label, sinkConstuctor)
 	expect.expect(2, sinkConstuctor, "function")
 
 	if label:find("%s") then -- TODO: Need to check if this covers all illegal characters.
-		error("Label `"..label.."` contains illegal characters.", 2)
+		error("The label `"..label.."` contains illegal characters.", 2)
 	end
 
 	if sinks[label] then
-		error("A sink with label `"..label.."` already exists", 2)
+		error("A sink with the label `"..label.."` already exists", 2)
 	end
 
 	sinks[label] = sinkConstuctor
