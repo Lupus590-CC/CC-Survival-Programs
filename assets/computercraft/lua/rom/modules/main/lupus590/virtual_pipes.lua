@@ -11,8 +11,8 @@ local nullLogger = setmetatable({}, {_index = function() end})
 if ok then
 	log = logger.newLoggerConfig()
 		--.writeTo().console()
-		.writeTo().filePlainText("virtualPipe.plain.log")
-		--.writeTo().fileLuaTable("virtualPipe.lua.log")
+		.writeTo().filePlainText("virtualPipes.plain.log")
+		--.writeTo().fileLuaTable("virtualPipes.lua.log")
 		.minimumLevel("information")
 		.createLogger()
 else
