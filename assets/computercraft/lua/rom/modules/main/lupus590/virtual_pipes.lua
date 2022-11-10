@@ -12,7 +12,7 @@ if ok then
 		--.writeTo().console()
 		.writeTo().filePlainText("virtualPipe.plain.log")
 		--.writeTo().fileLuaTable("virtualPipe.lua.log")
-		.minimumLevel(3)
+		.minimumLevel("information")
 		.createLogger()
 else
 	log = nullLogger
