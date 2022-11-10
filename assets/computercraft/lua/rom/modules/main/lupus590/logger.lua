@@ -1,5 +1,6 @@
 local expect = require("cc.expect")
 
+-- TODO: sinks accepting levels could be nice, so verbose and up goes to file but only information and up goes to console
 -- TODO: scoping? Could be useful for libaries or when things want to say when they start and stop something. How to implement? An option to ignore a scope could be nice too, that way users can filter out library logs. Can also be context.
 -- TODO: enrich/format
 -- TODO: enrich with context
@@ -157,6 +158,8 @@ registerSink("console", function(terminal)
 	end
 	return log
 end)
+
+-- TODO: file rolling
 
 --- Registers a sink that writes simple text logs to the given filename.
 ---@param fileName string The file to write to.
