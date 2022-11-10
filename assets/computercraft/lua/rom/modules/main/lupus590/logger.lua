@@ -179,9 +179,9 @@ registerSink("console", function(terminal)
 
 	local strings = require("cc.strings")
 
-	local function log(data)
-		local level, time, message = data.levelString, data.formatedDateTimeUtc, data.message
-		local formatedMessage = ("[%s %s] %s"):format(level, time, message) -- TODO: smart colours
+	local function log(args)
+		local level, time, scopeHead, message = args.levelString, args.formatedDateTimeUtc, args.scopeHead, args.message
+		local formatedMessage = ("[%s %s] %s: %s"):format(level, time, scopeHead, message) -- TODO: smart colours
 
 		for _, line in ipairs(strings.wrap(formatedMessage, width)) do
 			terminal.write(line)
@@ -205,9 +205,9 @@ registerSink("filePlainText", function(fileName)
 		error(err)
 	end
 
-	local function log(data)
-		local level, time, message = data.levelString, data.formatedDateTimeUtc, data.message
-		local formatedMessage = ("[%s %s] %s"):format(level, time, message)
+	local function log(args)
+		local level, time, scopeHead, message = args.levelString, args.formatedDateTimeUtc, args.scopeHead, args.message
+		local formatedMessage = ("[%s %s] %s: %s"):format(level, time, scopeHead, message)
 		file.writeLine(formatedMessage)
 		file.flush()
 	end
@@ -225,8 +225,8 @@ registerSink("fileLuaTable", function(fileName) -- We miss the outermost {}'s bu
 		error(err)
 	end
 
-	local function log(data)
-		file.writeLine(textutils.serialise(data)..",")
+	local function log(args)
+		file.writeLine(textutils.serialise(args)..",")
 		file.flush()
 	end
 	return log
