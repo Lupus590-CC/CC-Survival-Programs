@@ -73,8 +73,15 @@ local function createLogger(loggerConfig)
 			local milliseconds = ("%.2f"):format(nowUtc % 1000 * 1e-3):sub(2)
 			local formatedDateTimeUtc = ("%s%s"):format(date, milliseconds)
 
-			local scopeHead = logger.canScope and logger._scopeStack.peek() or nil
-			local scopeFull = logger.canScope and table.concat(logger._scopeStack, ".") or nil
+			local scopeHead, scopeFull
+			if logger.canScope then
+				scopeFull = table.concat(logger._scopeStack, ".")
+				if logger._scopeStack.isEmpty() then
+					scopeHead = ""
+				else
+					scopeHead = logger._scopeStack.peek()
+				end
+			end
 
 			for _, sink in pairs(loggerConfig._sinks) do
 				sink({levelString = levelString, levelNumber = levelNumber, formatedDateTimeUtc = formatedDateTimeUtc, message = message, nowUtc = nowUtc, scopeHead = scopeHead, scopeFull = scopeFull})
@@ -193,6 +200,7 @@ registerSink("console", function(terminal)
 end)
 
 -- TODO: file rolling
+-- TODO: don't make the file until we have to?
 
 --- Registers a sink that writes simple text logs to the given filename.
 ---@param fileName string The file to write to.
