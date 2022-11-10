@@ -24,9 +24,17 @@ end
 local function setLogger(newLogger)
 	expect.expect(1, newLogger, "table", "nil")
 	if newLogger then
-		for _, v in ipairs(logger.getLevels()) do
-			expect.field(newLogger, v, "function")
-		end
+		expect.field(newLogger, "verbose", "function")
+		expect.field(newLogger, "debug", "function")
+		expect.field(newLogger, "information", "function")
+		expect.field(newLogger, "warning", "function")
+		expect.field(newLogger, "error", "function")
+		expect.field(newLogger, "fatal", "function")
+
+		-- wish this worked
+		--for _, v in ipairs(logger.getLevels()) do
+			--expect.field(newLogger, v, "function")
+		--end
 		log = newLogger
 	else
 		log = nullLogger
