@@ -9,8 +9,8 @@ local log
 local nullLogger = setmetatable({}, {_index = function() end})
 if ok then
 	log = logger.newLoggerConfig()
-		.writeTo().console()
-		--.writeTo().filePlainText("virtualPipe.plain.log")
+		--.writeTo().console()
+		.writeTo().filePlainText("virtualPipe.plain.log")
 		--.writeTo().fileLuaTable("virtualPipe.lua.log")
 		.minimumLevel(3)
 		.createLogger()
