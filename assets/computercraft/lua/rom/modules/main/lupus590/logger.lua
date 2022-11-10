@@ -1,4 +1,10 @@
 local expect = require("cc.expect")
+local dataStructuresRequireName = "lupus590.data_structures"
+local ok, dataStructures = pcall(require, dataStructuresRequireName)
+if not ok then
+	dataStructures = nil
+end
+
 
 -- TODO: sinks accepting levels could be nice, so verbose and up goes to file but only information and up goes to console
 -- TODO: scoping? Could be useful for libaries or when things want to say when they start and stop something. How to implement? An option to ignore a scope could be nice too, that way users can filter out library logs. Can also be context.
@@ -6,7 +12,6 @@ local expect = require("cc.expect")
 -- TODO: enrich with context
 -- TODO: "cc.pretty" things?
 -- TODO: meta methods?
-
 
 local levels = {
 	"verbose",
@@ -68,10 +73,38 @@ local function createLogger(loggerConfig)
 			local milliseconds = ("%.2f"):format(nowUtc % 1000 * 1e-3):sub(2)
 			local formatedDateTimeUtc = ("%s%s"):format(date, milliseconds)
 
+			local scopeHead = logger.canScope and logger._scopeStack.peek() or nil
+			local scopeFull = logger.canScope and table.concat(logger._scopeStack, ".") or nil
+
 			for _, sink in pairs(loggerConfig._sinks) do
-				sink({levelString = levelString, levelNumber = levelNumber, formatedDateTimeUtc = formatedDateTimeUtc, message = message, nowUtc = nowUtc})
+				sink({levelString = levelString, levelNumber = levelNumber, formatedDateTimeUtc = formatedDateTimeUtc, message = message, nowUtc = nowUtc, scopeHead = scopeHead, scopeFull = scopeFull})
 			end
 		end
+	end
+
+	logger.canScope = not not dataStructures
+	logger._scopeStack = dataStructures and dataStructures.newStack() or nil
+
+	logger.enterScope = function(scope)
+		expect(1, scope, "string")
+		assert(logger.canScope, "Attempt to enter a logger scope while not supported, install `"..dataStructuresRequireName.."` module to add support for scoped logs.")
+		logger._scopeStack.push(scope)
+	end
+
+	logger.exitScope = function()
+		if logger._scopeStack.isEmpty() then
+            error("Attempt to leave a scope when there are none.", 2)
+        end
+		logger._scopeStack.pop()
+	end
+
+	logger.withScope = function(scope, callback)
+		expect(1, scope, "string")
+		expect(2, callback, "function")
+		assert(logger.canScope, "Attempt to enter a logger scope while not supported, install `"..dataStructuresRequireName.."` module to add support for scoped logs.")
+		logger.enterScope(scope)
+		callback()
+		logger.exitScope()
 	end
 
 	return logger
