@@ -26,6 +26,15 @@ local function newStack()
         stack._backingTable.n = stack._backingTable.n - 1
         return value
     end
+
+	function stack.peek()
+        if stack.isEmpty() then
+            error("Stack is empty, can't peek an empty stack.", 2)
+        end
+
+		return stack._backingTable[stack._backingTable.n]
+	end
+
     return stack
 end
 
@@ -72,6 +81,16 @@ local function newQueue()
         queue._compact()
         return value
     end
+
+	function queue.peek()
+        if queue.isEmpty() then
+            error("Stack is empty, can't peek an empty stack.", 2)
+        end
+
+		return queue._backingTable[queue._backingTable.head+1]
+	end
+
+
     return queue
 end
 
