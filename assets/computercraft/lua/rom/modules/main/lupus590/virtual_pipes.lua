@@ -2,6 +2,8 @@
 -- TODO: use metatable for pipe building and pipes themselves?
 -- TODO: can we parallel some of the peripheral calls? client code can paralise the pipes
 -- TODO: round robin would be nice
+-- TODO: logger scoping
+-- TODO: multi slot support, move 64 items even if a few are in different slots
 
 local expect = require("cc.expect")
 local pretty = require("cc.pretty")
