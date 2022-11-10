@@ -85,6 +85,7 @@ local function addFilterAndPrioritySetters(sourceOrDestination)
     end
 end
 
+-- TODO: verify that the added peripherals are the correct type for the current pipe
 local function addSource(pipe, sourceinventory)
     local source = {_backingTable = {name = sourceinventory}}
 
@@ -168,8 +169,8 @@ local function tickBuiltPipe(builtPipe, pipeType) -- TODO: return true if items/
 						ok, itemOrFluid = pcall(peripheral.call, source.name, "getItemDetail", slotOrTank) -- list doesn't give everything we sometimes want
 						if not ok then
 							-- TODO: we wrongly blame this sometimes if the error is terminated or others probably
-							local err = listOrTanks
-							log.fatal(err)
+							local err = itemOrFluid
+							log.fatal("`"..source.name.."`: "..err)
 							error(err, 0)
 							err = "Peripheral `"..source.name.."` disconnected or doesn't exist."
 							log.fatal(err)
@@ -193,7 +194,7 @@ local function tickBuiltPipe(builtPipe, pipeType) -- TODO: return true if items/
 							if not ok then
 								-- TODO: we wrongly blame this sometimes if the error is terminated or others probably
 								local err = _amountMoved
-								log.fatal(err)
+								log.fatal("`"..source.name.."` -> `"..destination.name.."`: "..err)
 								error(err, 0)
 								err = "Peripheral `"..source.name.."` or peripheral `"..destination.name.."` disconnected or doesn't exist."
 								log.fatal(err)
@@ -220,7 +221,7 @@ local function tickBuiltPipe(builtPipe, pipeType) -- TODO: return true if items/
 				if not ok then
 					-- TODO: we wrongly blame this sometimes if the error is terminated or others probably
 					local err = listOrTanks
-					log.fatal(err)
+					log.fatal("`"..source.name.."`: "..err)
 					error(err, 0)
 					err = "Peripheral `"..source.name.."` disconnected or doesn't exist."
 					log.fatal(err)
@@ -233,8 +234,8 @@ local function tickBuiltPipe(builtPipe, pipeType) -- TODO: return true if items/
 						ok, itemOrFluid = pcall(peripheral.call, source.name, "getItemDetail", slotOrTank) -- list doesn't give everything we sometimes want
 						if not ok then
 							-- TODO: we wrongly blame this sometimes if the error is terminated or others probably
-							local err = listOrTanks
-							log.fatal(err)
+							local err = itemOrFluid
+							log.fatal("`"..source.name.."`: "..err)
 							error(err, 0)
 							err = "Peripheral `"..source.name.."` disconnected or doesn't exist."
 							log.fatal(err)
