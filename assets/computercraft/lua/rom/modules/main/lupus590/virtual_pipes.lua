@@ -18,14 +18,15 @@ else
 	log = nullLogger
 end
 
--- TODO: take an already built logger?
 --- Sets the logger to use or (if nil) disables logging.
----@param newLogger {createLogger : function} | nil The new loggerConfig to create a logger from.
+---@param newLogger table | nil The new logger or nil to disable logging.
 local function setLogger(newLogger)
 	expect.expect(1, newLogger, "table", "nil")
 	if newLogger then
-		expect.field(newLogger, "createLogger", "function")
-		log = newLogger.createLogger()
+		for _, v in ipairs(logger.getLevels()) do
+			expect.field(newLogger, v, "function")
+		end
+		log = newLogger
 	else
 		log = nullLogger
 	end
