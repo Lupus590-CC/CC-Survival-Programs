@@ -1,6 +1,7 @@
 -- TODO: code cleanup
 -- TODO: use metatable for pipe building and pipes themselves?
 -- TODO: can we parallel some of the peripheral calls? client code can paralise the pipes
+-- TODO: round robin would be nice
 
 local expect = require("cc.expect")
 local pretty = require("cc.pretty")
