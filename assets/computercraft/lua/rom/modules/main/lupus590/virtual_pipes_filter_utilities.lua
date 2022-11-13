@@ -64,7 +64,7 @@ end
 ---@return number . The number of items that are allowed to be inserted.
 local function overFlowPreventer(itemName, peripheralName, maxCount)
     for _, item in pairs(peripheral.call(peripheralName, "list")) do
-        if item.name == itemName then
+        if itemName == nil or item.name == itemName then
             return maxCount - item.count
         end
     end
