@@ -96,6 +96,7 @@ end
 
 local function bufferOpimiser(x)
     -- https://www.desmos.com/calculator
+	-- y=100\cdot e^{\frac{-\left(x-100\right)^{2}}{10}}
     x = math.min(math.max(x, 0), 100)
     local fraction = -(((x-100)*(x-100))/(10))
     local y = 100 * math.exp(fraction)
